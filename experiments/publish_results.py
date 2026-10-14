@@ -2,7 +2,8 @@
 
     python experiments/publish_results.py
 
-Mỗi file thành một bảng exp_* (ghi đè). Dashboard "BDI · Kết quả thí nghiệm"
+Mỗi file thành một bảng exp_* (ghi đè). Chỉ cần thư mục results/ trong repo, không
+cần dữ liệu thô, nên chạy được trên máy vừa clone. Dashboard "BDI · Kết quả thí nghiệm"
 (grafana/dashboards/bdi_results.json) đọc các bảng này. Chạy lại sau mỗi lần cập
 nhật kết quả.
 """
@@ -28,6 +29,7 @@ TABLES = {
     "exp_e6": "e6/approx_local.csv",
     "exp_e7_sweep": "e7/sweep.csv",
     "exp_c5": "c5/source_quality.csv",
+    "exp_e7_sb": "e7/stream_vs_batch.csv",
 }
 
 
@@ -72,7 +74,14 @@ def main() -> None:
                 write_table(conn, name, pd.read_csv(p))
             else:
                 print(f"[skip] {name}: chưa có {rel}")
-        write_table(conn, "exp_e7_daily", e7_daily())
+        # Có file trong repo thì dùng file (máy mới chưa có nến batch); không thì tính từ Postgres
+        daily = res / "e7" / "alerts_per_day.csv"
+        if daily.exists():
+            d = pd.read_csv(daily)
+            d["day"] = d["day"].str[5:]  # 2022-11-08 -> 11-08
+            write_table(conn, "exp_e7_daily", d)
+        else:
+            write_table(conn, "exp_e7_daily", e7_daily())
         conn.commit()
 
 

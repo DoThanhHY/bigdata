@@ -82,7 +82,7 @@ P += [
     stat("E5 · F1 tốt nhất (ghép mờ)", "SELECT max(f1) AS v FROM exp_e5", 12, 2, decimals=3,
          desc="Ghép giữ thứ tự, δ = 1 s"),
     stat("E7 · báo động stream trùng batch",
-         "SELECT count(*) AS v FROM anomalies WHERE source = 'stream:e7_ftx_x100'", 18, 2, color=ORANGE,
+         'SELECT "both" AS v FROM exp_e7_sb', 18, 2, color=ORANGE,
          desc="Replay FTX 100×: 111/111 trùng batch"),
 ]
 

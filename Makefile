@@ -22,7 +22,7 @@ ps: ## Trạng thái container
 logs: ## Log pipeline live
 	docker compose logs -f --tail=50 ws-producer stream-candles
 
-test: ## Chạy test trên host (cần Python 3.11/3.12 + Java 17/21)
+test: ## Chạy test trên host (cần Python 3.11–3.14 + Java 17/21)
 	$(PY) -m pytest
 
 test-docker: ## Chạy test trong image Docker (không cần cài gì trên host)

@@ -203,7 +203,7 @@
      "format": "table",
      "rawQuery": true,
      "editorMode": "code",
-     "rawSql": "SELECT count(*) AS v FROM anomalies WHERE source = 'stream:e7_ftx_x100'"
+     "rawSql": "SELECT \"both\" AS v FROM exp_e7_sb"
     }
    ],
    "fieldConfig": {
