@@ -1,0 +1,1 @@
+{"run_id":"e3_wm10","source":"stream:wm=10s","watermark_s":10,"trigger_s":2,"jitter_pct":0,"jitter_max_s":0}

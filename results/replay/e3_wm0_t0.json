@@ -1,0 +1,9 @@
+{
+  "run_id": "e3_round0_t0",
+  "topic": "binance.aggtrades.replay",
+  "speed": 1.0,
+  "messages": 52407,
+  "origin_us": 1791904500141623,
+  "replay_start_us": 1791915956531728,
+  "replay_end_us": 1791917757401867
+}

@@ -1,0 +1,964 @@
+{
+ "uid": "bdi-results",
+ "title": "BDI · Kết quả thí nghiệm",
+ "timezone": "utc",
+ "schemaVersion": 39,
+ "time": {
+  "from": "now-6h",
+  "to": "now"
+ },
+ "refresh": "",
+ "panels": [
+  {
+   "id": 1,
+   "type": "text",
+   "title": "",
+   "gridPos": {
+    "x": 0,
+    "y": 0,
+    "w": 24,
+    "h": 2
+   },
+   "options": {
+    "mode": "markdown",
+    "content": "### Kết quả thí nghiệm · Nhóm 3 · IT5427\nSố liệu từ `results/*.csv`, nạp bằng `python experiments/publish_results.py`. Luồng live: dashboard **[BDI · Binance batch + streaming](/d/bdi-live)**. Chi tiết: `docs/05-ket-qua.md`."
+   }
+  },
+  {
+   "id": 2,
+   "type": "stat",
+   "title": "E2 · nến batch khớp tuyệt đối official",
+   "description": "5 cặp × 4 tháng, mọi trường O/H/L/C/V + trades",
+   "datasource": {
+    "type": "grafana-postgresql-datasource",
+    "uid": "bdi-pg"
+   },
+   "gridPos": {
+    "x": 0,
+    "y": 2,
+    "w": 6,
+    "h": 4
+   },
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "grafana-postgresql-datasource",
+      "uid": "bdi-pg"
+     },
+     "format": "table",
+     "rawQuery": true,
+     "editorMode": "code",
+     "rawSql": "SELECT round(sum(all_match * n_minutes / 100)) AS v FROM exp_e2"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "unit": "none",
+     "color": {
+      "mode": "fixed",
+      "fixedColor": "#2a78d6"
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "colorMode": "value",
+    "graphMode": "none",
+    "textMode": "value",
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ],
+     "fields": "",
+     "values": false
+    }
+   }
+  },
+  {
+   "id": 3,
+   "type": "stat",
+   "title": "E4 · nến thiếu / thừa / lệch qua sự cố",
+   "description": "4 kịch bản chủ động; thêm sự cố máy ngủ 5,7 giờ cũng 0",
+   "datasource": {
+    "type": "grafana-postgresql-datasource",
+    "uid": "bdi-pg"
+   },
+   "gridPos": {
+    "x": 6,
+    "y": 2,
+    "w": 6,
+    "h": 4
+   },
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "grafana-postgresql-datasource",
+      "uid": "bdi-pg"
+     },
+     "format": "table",
+     "rawQuery": true,
+     "editorMode": "code",
+     "rawSql": "SELECT sum(missing_minutes + extra_trades_minutes + wrong_minutes) AS v FROM exp_e4"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "unit": "none",
+     "color": {
+      "mode": "fixed",
+      "fixedColor": "#1baf7a"
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "colorMode": "value",
+    "graphMode": "none",
+    "textMode": "value",
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ],
+     "fields": "",
+     "values": false
+    }
+   }
+  },
+  {
+   "id": 4,
+   "type": "stat",
+   "title": "E5 · F1 tốt nhất (ghép mờ)",
+   "description": "Ghép giữ thứ tự, δ = 1 s",
+   "datasource": {
+    "type": "grafana-postgresql-datasource",
+    "uid": "bdi-pg"
+   },
+   "gridPos": {
+    "x": 12,
+    "y": 2,
+    "w": 6,
+    "h": 4
+   },
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "grafana-postgresql-datasource",
+      "uid": "bdi-pg"
+     },
+     "format": "table",
+     "rawQuery": true,
+     "editorMode": "code",
+     "rawSql": "SELECT max(f1) AS v FROM exp_e5"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "unit": "none",
+     "color": {
+      "mode": "fixed",
+      "fixedColor": "#2a78d6"
+     },
+     "decimals": 3
+    },
+    "overrides": []
+   },
+   "options": {
+    "colorMode": "value",
+    "graphMode": "none",
+    "textMode": "value",
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ],
+     "fields": "",
+     "values": false
+    }
+   }
+  },
+  {
+   "id": 5,
+   "type": "stat",
+   "title": "E7 · báo động stream trùng batch",
+   "description": "Replay FTX 100×: 111/111 trùng batch",
+   "datasource": {
+    "type": "grafana-postgresql-datasource",
+    "uid": "bdi-pg"
+   },
+   "gridPos": {
+    "x": 18,
+    "y": 2,
+    "w": 6,
+    "h": 4
+   },
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "grafana-postgresql-datasource",
+      "uid": "bdi-pg"
+     },
+     "format": "table",
+     "rawQuery": true,
+     "editorMode": "code",
+     "rawSql": "SELECT count(*) AS v FROM anomalies WHERE source = 'stream:e7_ftx_x100'"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "unit": "none",
+     "color": {
+      "mode": "fixed",
+      "fixedColor": "#eb6834"
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "colorMode": "value",
+    "graphMode": "none",
+    "textMode": "value",
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ],
+     "fields": "",
+     "values": false
+    }
+   }
+  },
+  {
+   "id": 6,
+   "type": "row",
+   "title": "E1 · Schema drift   ·   E2 · Batch vs official",
+   "collapsed": false,
+   "gridPos": {
+    "x": 0,
+    "y": 6,
+    "w": 24,
+    "h": 1
+   }
+  },
+  {
+   "id": 7,
+   "type": "barchart",
+   "title": "E1 · % nến đúng: naive vs drift-aware",
+   "description": "Naive hỏng toàn bộ 2026 (timestamp µs), vẫn đúng 2022 (ms)",
+   "datasource": {
+    "type": "grafana-postgresql-datasource",
+    "uid": "bdi-pg"
+   },
+   "gridPos": {
+    "x": 0,
+    "y": 7,
+    "w": 12,
+    "h": 8
+   },
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "grafana-postgresql-datasource",
+      "uid": "bdi-pg"
+     },
+     "format": "table",
+     "rawQuery": true,
+     "editorMode": "code",
+     "rawSql": "\nSELECT symbol || ' ' || period AS x,\n       max(CASE WHEN version = 'naive' THEN pct_candle_ok END) AS \"Naive (luôn coi là ms)\",\n       max(CASE WHEN version = 'drift_aware' THEN pct_candle_ok END) AS \"Drift-aware\"\nFROM exp_e1 GROUP BY 1 ORDER BY 1"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "unit": "percent",
+     "custom": {
+      "fillOpacity": 90,
+      "lineWidth": 0
+     },
+     "min": 0,
+     "max": 100
+    },
+    "overrides": [
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "Naive (luôn coi là ms)"
+      },
+      "properties": [
+       {
+        "id": "color",
+        "value": {
+         "mode": "fixed",
+         "fixedColor": "#eb6834"
+        }
+       }
+      ]
+     },
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "Drift-aware"
+      },
+      "properties": [
+       {
+        "id": "color",
+        "value": {
+         "mode": "fixed",
+         "fixedColor": "#2a78d6"
+        }
+       }
+      ]
+     }
+    ]
+   },
+   "options": {
+    "xField": "x",
+    "orientation": "vertical",
+    "showValue": "auto",
+    "stacking": "none",
+    "groupWidth": 0.7,
+    "barWidth": 0.9,
+    "xTickLabelRotation": 0,
+    "legend": {
+     "showLegend": true,
+     "displayMode": "list",
+     "placement": "bottom"
+    },
+    "tooltip": {
+     "mode": "multi"
+    }
+   }
+  },
+  {
+   "id": 8,
+   "type": "table",
+   "title": "E2 · % khớp từng trường theo cặp × tháng",
+   "description": "",
+   "datasource": {
+    "type": "grafana-postgresql-datasource",
+    "uid": "bdi-pg"
+   },
+   "gridPos": {
+    "x": 12,
+    "y": 7,
+    "w": 12,
+    "h": 8
+   },
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "grafana-postgresql-datasource",
+      "uid": "bdi-pg"
+     },
+     "format": "table",
+     "rawQuery": true,
+     "editorMode": "code",
+     "rawSql": "\nSELECT symbol AS \"Cặp\", month AS \"Tháng\", n_minutes AS \"Số nến\",\n       match_open AS \"O %\", match_high AS \"H %\", match_low AS \"L %\", match_close AS \"C %\",\n       match_volume AS \"V %\", match_trades AS \"Trades %\", all_match AS \"Tất cả %\"\nFROM exp_e2 ORDER BY 1, 2"
+    }
+   ],
+   "options": {
+    "showHeader": true,
+    "cellHeight": "sm"
+   },
+   "fieldConfig": {
+    "defaults": {},
+    "overrides": []
+   }
+  },
+  {
+   "id": 9,
+   "type": "row",
+   "title": "E3 · Trade-off watermark",
+   "collapsed": false,
+   "gridPos": {
+    "x": 0,
+    "y": 15,
+    "w": 24,
+    "h": 1
+   }
+  },
+  {
+   "id": 10,
+   "type": "barchart",
+   "title": "E3 · % nến khớp official theo watermark",
+   "description": "Dữ liệu thật lệch thứ tự tối đa 0,78 s nên mọi watermark đều 100%",
+   "datasource": {
+    "type": "grafana-postgresql-datasource",
+    "uid": "bdi-pg"
+   },
+   "gridPos": {
+    "x": 0,
+    "y": 16,
+    "w": 12,
+    "h": 8
+   },
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "grafana-postgresql-datasource",
+      "uid": "bdi-pg"
+     },
+     "format": "table",
+     "rawQuery": true,
+     "editorMode": "code",
+     "rawSql": "\nSELECT watermark_s || ' s' AS x,\n       max(CASE WHEN jitter_pct = 0 AND trigger_s = 2 THEN pct_match END) AS \"Dữ liệu thật\",\n       max(CASE WHEN jitter_pct > 0 THEN pct_match END) AS \"5% bản tin trễ ≤ 20 s\"\nFROM exp_e3 GROUP BY watermark_s ORDER BY watermark_s"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "unit": "percent",
+     "custom": {
+      "fillOpacity": 90,
+      "lineWidth": 0
+     },
+     "min": 0,
+     "max": 100
+    },
+    "overrides": [
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "Dữ liệu thật"
+      },
+      "properties": [
+       {
+        "id": "color",
+        "value": {
+         "mode": "fixed",
+         "fixedColor": "#2a78d6"
+        }
+       }
+      ]
+     },
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "5% bản tin trễ ≤ 20 s"
+      },
+      "properties": [
+       {
+        "id": "color",
+        "value": {
+         "mode": "fixed",
+         "fixedColor": "#eb6834"
+        }
+       }
+      ]
+     }
+    ]
+   },
+   "options": {
+    "xField": "x",
+    "orientation": "vertical",
+    "showValue": "auto",
+    "stacking": "none",
+    "groupWidth": 0.7,
+    "barWidth": 0.9,
+    "xTickLabelRotation": 0,
+    "legend": {
+     "showLegend": true,
+     "displayMode": "list",
+     "placement": "bottom"
+    },
+    "tooltip": {
+     "mode": "multi"
+    }
+   }
+  },
+  {
+   "id": 11,
+   "type": "barchart",
+   "title": "E3 · Độ trễ ghi nến p95 theo watermark",
+   "description": "",
+   "datasource": {
+    "type": "grafana-postgresql-datasource",
+    "uid": "bdi-pg"
+   },
+   "gridPos": {
+    "x": 12,
+    "y": 16,
+    "w": 12,
+    "h": 8
+   },
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "grafana-postgresql-datasource",
+      "uid": "bdi-pg"
+     },
+     "format": "table",
+     "rawQuery": true,
+     "editorMode": "code",
+     "rawSql": "\nSELECT watermark_s || ' s' AS x,\n       max(CASE WHEN jitter_pct = 0 AND trigger_s = 2 THEN latency_p95_s END) AS \"Dữ liệu thật\",\n       max(CASE WHEN jitter_pct > 0 THEN latency_p95_s END) AS \"5% bản tin trễ ≤ 20 s\"\nFROM exp_e3 GROUP BY watermark_s ORDER BY watermark_s"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "unit": "s",
+     "custom": {
+      "fillOpacity": 90,
+      "lineWidth": 0
+     }
+    },
+    "overrides": [
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "Dữ liệu thật"
+      },
+      "properties": [
+       {
+        "id": "color",
+        "value": {
+         "mode": "fixed",
+         "fixedColor": "#2a78d6"
+        }
+       }
+      ]
+     },
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "5% bản tin trễ ≤ 20 s"
+      },
+      "properties": [
+       {
+        "id": "color",
+        "value": {
+         "mode": "fixed",
+         "fixedColor": "#eb6834"
+        }
+       }
+      ]
+     }
+    ]
+   },
+   "options": {
+    "xField": "x",
+    "orientation": "vertical",
+    "showValue": "auto",
+    "stacking": "none",
+    "groupWidth": 0.7,
+    "barWidth": 0.9,
+    "xTickLabelRotation": 0,
+    "legend": {
+     "showLegend": true,
+     "displayMode": "list",
+     "placement": "bottom"
+    },
+    "tooltip": {
+     "mode": "multi"
+    }
+   }
+  },
+  {
+   "id": 12,
+   "type": "row",
+   "title": "E4 · Fault injection",
+   "collapsed": false,
+   "gridPos": {
+    "x": 0,
+    "y": 24,
+    "w": 24,
+    "h": 1
+   }
+  },
+  {
+   "id": 13,
+   "type": "table",
+   "title": "E4 · Sự cố chủ động",
+   "description": "",
+   "datasource": {
+    "type": "grafana-postgresql-datasource",
+    "uid": "bdi-pg"
+   },
+   "gridPos": {
+    "x": 0,
+    "y": 25,
+    "w": 14,
+    "h": 6
+   },
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "grafana-postgresql-datasource",
+      "uid": "bdi-pg"
+     },
+     "format": "table",
+     "rawQuery": true,
+     "editorMode": "code",
+     "rawSql": "\nSELECT scenario AS \"Kịch bản\", round(down_s::numeric, 0) AS \"Lỗi (s)\", round(recovery_s::numeric, 1) AS \"Phục hồi (s)\",\n       backfilled_records AS \"Backfill\", official_minutes AS \"Phút official\",\n       missing_minutes AS \"Thiếu\", extra_trades_minutes AS \"Thừa\", wrong_minutes AS \"Lệch\"\nFROM exp_e4 ORDER BY inject"
+    }
+   ],
+   "options": {
+    "showHeader": true,
+    "cellHeight": "sm"
+   },
+   "fieldConfig": {
+    "defaults": {},
+    "overrides": []
+   }
+  },
+  {
+   "id": 14,
+   "type": "table",
+   "title": "E4 · Khoảng trống WS đã backfill (gần nhất)",
+   "description": "",
+   "datasource": {
+    "type": "grafana-postgresql-datasource",
+    "uid": "bdi-pg"
+   },
+   "gridPos": {
+    "x": 14,
+    "y": 25,
+    "w": 10,
+    "h": 6
+   },
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "grafana-postgresql-datasource",
+      "uid": "bdi-pg"
+     },
+     "format": "table",
+     "rawQuery": true,
+     "editorMode": "code",
+     "rawSql": "\nSELECT symbol AS \"Cặp\", disconnected_at AS \"Ngắt lúc\", reconnected_at AS \"Nối lại\", backfilled AS \"Backfill\", reason AS \"Lý do\"\nFROM ws_gaps ORDER BY disconnected_at DESC LIMIT 20"
+    }
+   ],
+   "options": {
+    "showHeader": true,
+    "cellHeight": "sm"
+   },
+   "fieldConfig": {
+    "defaults": {},
+    "overrides": []
+   }
+  },
+  {
+   "id": 15,
+   "type": "row",
+   "title": "E5 · Record linkage   ·   E6 · Truy vấn xấp xỉ",
+   "collapsed": false,
+   "gridPos": {
+    "x": 0,
+    "y": 31,
+    "w": 24,
+    "h": 1
+   }
+  },
+  {
+   "id": 16,
+   "type": "barchart",
+   "title": "E5 · F1 theo dung sai δ",
+   "description": "",
+   "datasource": {
+    "type": "grafana-postgresql-datasource",
+    "uid": "bdi-pg"
+   },
+   "gridPos": {
+    "x": 0,
+    "y": 32,
+    "w": 12,
+    "h": 8
+   },
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "grafana-postgresql-datasource",
+      "uid": "bdi-pg"
+     },
+     "format": "table",
+     "rawQuery": true,
+     "editorMode": "code",
+     "rawSql": "\nSELECT delta_ms || ' ms' AS x,\n       max(CASE WHEN method = 'greedy' AND strategy = 'second' THEN f1 END) AS \"Tham lam theo |Δt|\",\n       max(CASE WHEN method = 'ordered' THEN f1 END) AS \"Giữ thứ tự\"\nFROM exp_e5 GROUP BY delta_ms ORDER BY delta_ms"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "unit": "none",
+     "custom": {
+      "fillOpacity": 90,
+      "lineWidth": 0
+     },
+     "min": 0,
+     "max": 1
+    },
+    "overrides": [
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "Tham lam theo |Δt|"
+      },
+      "properties": [
+       {
+        "id": "color",
+        "value": {
+         "mode": "fixed",
+         "fixedColor": "#eb6834"
+        }
+       }
+      ]
+     },
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "Giữ thứ tự"
+      },
+      "properties": [
+       {
+        "id": "color",
+        "value": {
+         "mode": "fixed",
+         "fixedColor": "#2a78d6"
+        }
+       }
+      ]
+     }
+    ]
+   },
+   "options": {
+    "xField": "x",
+    "orientation": "vertical",
+    "showValue": "auto",
+    "stacking": "none",
+    "groupWidth": 0.7,
+    "barWidth": 0.9,
+    "xTickLabelRotation": 0,
+    "legend": {
+     "showLegend": true,
+     "displayMode": "list",
+     "placement": "bottom"
+    },
+    "tooltip": {
+     "mode": "multi"
+    }
+   }
+  },
+  {
+   "id": 17,
+   "type": "table",
+   "title": "E6 · Chính xác vs xấp xỉ (419,8M dòng)",
+   "description": "Phân vị chính xác trên notional: OutOfMemoryError (6 GB)",
+   "datasource": {
+    "type": "grafana-postgresql-datasource",
+    "uid": "bdi-pg"
+   },
+   "gridPos": {
+    "x": 12,
+    "y": 32,
+    "w": 12,
+    "h": 8
+   },
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "grafana-postgresql-datasource",
+      "uid": "bdi-pg"
+     },
+     "format": "table",
+     "rawQuery": true,
+     "editorMode": "code",
+     "rawSql": "\nSELECT query AS \"Phép tính\", param AS \"Cấu hình\", round(seconds::numeric, 1) AS \"Thời gian (s)\",\n       round(rel_error_pct::numeric, 2) AS \"Sai số giá trị %\", round(rank_error_pct::numeric, 3) AS \"Sai số thứ hạng %\"\nFROM exp_e6 ORDER BY 1, 2"
+    }
+   ],
+   "options": {
+    "showHeader": true,
+    "cellHeight": "sm"
+   },
+   "fieldConfig": {
+    "defaults": {},
+    "overrides": []
+   }
+  },
+  {
+   "id": 18,
+   "type": "row",
+   "title": "E7 · Phát hiện bất thường   ·   C5 · Chọn nguồn",
+   "collapsed": false,
+   "gridPos": {
+    "x": 0,
+    "y": 40,
+    "w": 24,
+    "h": 1
+   }
+  },
+  {
+   "id": 19,
+   "type": "barchart",
+   "title": "E7 · Báo động log-return theo ngày, 11/2022 (5 cặp)",
+   "description": "Modified z-score, baseline 1 ngày, |M| > 3,5, sàn |log-return| ≥ 0,5%",
+   "datasource": {
+    "type": "grafana-postgresql-datasource",
+    "uid": "bdi-pg"
+   },
+   "gridPos": {
+    "x": 0,
+    "y": 41,
+    "w": 16,
+    "h": 8
+   },
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "grafana-postgresql-datasource",
+      "uid": "bdi-pg"
+     },
+     "format": "table",
+     "rawQuery": true,
+     "editorMode": "code",
+     "rawSql": "\nSELECT day AS x, CASE WHEN ftx THEN alerts END AS \"8–9/11 (FTX)\", CASE WHEN NOT ftx THEN alerts END AS \"Ngày khác\"\nFROM exp_e7_daily ORDER BY day"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "unit": "none",
+     "custom": {
+      "fillOpacity": 90,
+      "lineWidth": 0
+     }
+    },
+    "overrides": [
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "8–9/11 (FTX)"
+      },
+      "properties": [
+       {
+        "id": "color",
+        "value": {
+         "mode": "fixed",
+         "fixedColor": "#eb6834"
+        }
+       }
+      ]
+     },
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "Ngày khác"
+      },
+      "properties": [
+       {
+        "id": "color",
+        "value": {
+         "mode": "fixed",
+         "fixedColor": "#2a78d6"
+        }
+       }
+      ]
+     }
+    ]
+   },
+   "options": {
+    "xField": "x",
+    "orientation": "vertical",
+    "showValue": "auto",
+    "stacking": "normal",
+    "groupWidth": 0.7,
+    "barWidth": 0.9,
+    "xTickLabelRotation": 0,
+    "legend": {
+     "showLegend": true,
+     "displayMode": "list",
+     "placement": "bottom"
+    },
+    "tooltip": {
+     "mode": "multi"
+    }
+   }
+  },
+  {
+   "id": 20,
+   "type": "table",
+   "title": "C5 · Chất lượng nguồn",
+   "description": "",
+   "datasource": {
+    "type": "grafana-postgresql-datasource",
+    "uid": "bdi-pg"
+   },
+   "gridPos": {
+    "x": 16,
+    "y": 41,
+    "w": 8,
+    "h": 8
+   },
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "grafana-postgresql-datasource",
+      "uid": "bdi-pg"
+     },
+     "format": "table",
+     "rawQuery": true,
+     "editorMode": "code",
+     "rawSql": "\nSELECT source AS \"Nguồn\", completeness_pct AS \"Completeness %\", consistency_pct AS \"Consistency %\",\n       round(timeliness_p50_s::numeric, 1) AS \"Timeliness p50 (s)\", round(timeliness_p95_s::numeric, 1) AS \"p95 (s)\"\nFROM exp_c5"
+    }
+   ],
+   "options": {
+    "showHeader": true,
+    "cellHeight": "sm"
+   },
+   "fieldConfig": {
+    "defaults": {},
+    "overrides": []
+   }
+  },
+  {
+   "id": 21,
+   "type": "table",
+   "title": "E7 · Quét tham số",
+   "description": "",
+   "datasource": {
+    "type": "grafana-postgresql-datasource",
+    "uid": "bdi-pg"
+   },
+   "gridPos": {
+    "x": 0,
+    "y": 49,
+    "w": 24,
+    "h": 8
+   },
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "grafana-postgresql-datasource",
+      "uid": "bdi-pg"
+     },
+     "format": "table",
+     "rawQuery": true,
+     "editorMode": "code",
+     "rawSql": "\nSELECT \"window\" AS \"W (phút)\", threshold AS \"|M| >\", min_abs_return AS \"Sàn\", ftx_8 AS \"8/11\", ftx_9 AS \"9/11\",\n       ftx_rank_8 AS \"Hạng 8/11\", ftx_rank_9 AS \"Hạng 9/11\",\n       round(per_day_nov22::numeric, 1) AS \"/ngày 11/2022\", round(per_day_quiet26::numeric, 1) AS \"/ngày yên 2026\"\nFROM exp_e7_sweep ORDER BY 1, 2, 3"
+    }
+   ],
+   "options": {
+    "showHeader": true,
+    "cellHeight": "sm"
+   },
+   "fieldConfig": {
+    "defaults": {},
+    "overrides": []
+   }
+  }
+ ],
+ "editable": true,
+ "links": [
+  {
+   "title": "Luồng live",
+   "type": "link",
+   "url": "/d/bdi-live"
+  }
+ ]
+}

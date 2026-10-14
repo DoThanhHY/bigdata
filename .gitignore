@@ -1,0 +1,20 @@
+# Dữ liệu thô / lake / checkpoint — KHÔNG đẩy lên GitHub (cam kết trong đề xuất, bẫy D7)
+data/
+*.zip
+*.csv.gz
+spark-warehouse/
+metastore_db/
+derby.log
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+.pytest_cache/
+
+# Kết quả: giữ bảng + hình, bỏ log và file lớn
+results/**/logs/
+results/progress/
+results/reconcile/*_mismatches.csv.gz
+.env
+.DS_Store

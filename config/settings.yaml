@@ -1,0 +1,46 @@
+# Cấu hình chung cho toàn bộ pipeline. Mọi script đọc file này qua bdi.config.
+# Có thể ghi đè từng giá trị bằng biến môi trường (xem bdi/config.py).
+
+pipeline_version: "0.1.0"
+
+symbols: [BTCUSDT, ETHUSDT, BNBUSDT, SOLUSDT, XRPUSDT]
+
+# 4 tháng cho E2: 1 tháng giai đoạn ms (2022, FTX) + 3 tháng giai đoạn us (2026, thị trường yên)
+months: ["2022-11", "2026-06", "2026-07", "2026-08"]
+
+paths:
+  raw: data/raw            # zip + csv tải từ data.binance.vision (KHÔNG commit)
+  lake: data/lake          # parquet: bronze/silver/gold
+  checkpoints: data/checkpoints
+  results: results         # bảng + hình cho báo cáo (được commit)
+  state: data/state        # aggId cuối cùng đã nhận theo symbol
+
+binance:
+  data_base_url: https://data.binance.vision/data/spot
+  ws_url: wss://stream.binance.com:9443/stream
+  ws_fallback_url: wss://data-stream.binance.vision/stream
+  rest_url: https://api.binance.com
+  # Binance tự ngắt WS sau 24h; chủ động nối lại trước đó một chút
+  ws_max_session_seconds: 85800
+
+kafka:
+  bootstrap: localhost:9094          # từ host; trong docker dùng kafka:9092
+  topic_live: binance.aggtrades.live
+  topic_replay: binance.aggtrades.replay
+
+postgres:
+  host: localhost
+  port: 5433                       # cổng host; trong docker là 5432 (ghi đè bằng env)
+  db: bdi
+  user: bdi
+  password: bdi
+
+stream:
+  watermark_seconds: 5
+  trigger_seconds: 2
+  output_mode: append                # append = 1 bản/nến; update = ghi mọi phiên bản (dùng cho C5)
+
+anomaly:
+  window_minutes: 1440               # baseline 1 ngày (60 phút thích nghi quá nhanh — xem E7)
+  threshold: 3.5                     # Iglewicz–Hoaglin
+  min_abs_return: 0.005              # sàn |log-return| 0,5% để bỏ cú nhảy nhỏ ở thị trường yên

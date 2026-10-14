@@ -1,0 +1,2 @@
+symbol,month,match_open,match_high,match_low,match_close,match_volume,match_trades,all_match,n_minutes,missing_left,missing_right
+BTCUSDT,2022-11,100.0,100.0,100.0,100.0,100.0,100.0,100.0,5758,0,0

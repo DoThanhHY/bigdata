@@ -1,0 +1,12 @@
+# pyspark phải khớp phiên bản connector Kafka trong src/bdi/spark.py (SPARK_VERSION)
+pyspark==4.0.4
+pyarrow>=19
+pandas>=2.2
+numpy>=2.2
+matplotlib>=3.10
+pyyaml>=6.0
+requests>=2.32
+websockets>=15,<18
+confluent-kafka>=2.10
+psycopg[binary]>=3.2
+pytest>=8.3

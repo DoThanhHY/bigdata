@@ -1,0 +1,11 @@
+{
+  "run_id": "e7_ftx_x100_part2",
+  "topic": "binance.aggtrades.replay",
+  "speed": 100.0,
+  "messages": 17246532,
+  "origin_us": 1667924212000000,
+  "replay_start_us": 1791951152410164,
+  "replay_end_us": 1791952358093641,
+  "jitter_pct": 0,
+  "jitter_max_s": 0
+}

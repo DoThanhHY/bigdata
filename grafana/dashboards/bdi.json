@@ -1,0 +1,389 @@
+{
+ "uid": "bdi-live",
+ "title": "BDI · Binance batch + streaming",
+ "timezone": "utc",
+ "refresh": "10s",
+ "time": {
+  "from": "now-3h",
+  "to": "now"
+ },
+ "schemaVersion": 39,
+ "panels": [
+  {
+   "id": 1,
+   "type": "stat",
+   "title": "Độ tươi nến stream (giây từ phút mới nhất)",
+   "datasource": {
+    "type": "grafana-postgresql-datasource",
+    "uid": "bdi-pg"
+   },
+   "gridPos": {
+    "x": 0,
+    "y": 0,
+    "w": 6,
+    "h": 4
+   },
+   "fieldConfig": {
+    "defaults": {
+     "unit": "s"
+    },
+    "overrides": []
+   },
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "grafana-postgresql-datasource",
+      "uid": "bdi-pg"
+     },
+     "format": "table",
+     "rawQuery": true,
+     "editorMode": "code",
+     "rawSql": "SELECT extract(epoch FROM now() - max(minute) - interval '1 minute') AS freshness FROM candles WHERE source = 'stream'"
+    }
+   ]
+  },
+  {
+   "id": 2,
+   "type": "stat",
+   "title": "% nến stream khớp official (24h qua)",
+   "datasource": {
+    "type": "grafana-postgresql-datasource",
+    "uid": "bdi-pg"
+   },
+   "gridPos": {
+    "x": 6,
+    "y": 0,
+    "w": 6,
+    "h": 4
+   },
+   "fieldConfig": {
+    "defaults": {
+     "unit": "percent"
+    },
+    "overrides": []
+   },
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "grafana-postgresql-datasource",
+      "uid": "bdi-pg"
+     },
+     "format": "table",
+     "rawQuery": true,
+     "editorMode": "code",
+     "rawSql": "SELECT 100.0 * avg((s.open=o.open AND s.high=o.high AND s.low=o.low AND s.close=o.close AND s.volume=o.volume AND s.trades=o.trades)::int) AS match\nFROM candles s JOIN candles o ON o.symbol=s.symbol AND o.minute=s.minute AND o.source='official'\nWHERE s.source='stream' AND s.minute > now() - interval '24 hours'"
+    }
+   ]
+  },
+  {
+   "id": 3,
+   "type": "stat",
+   "title": "Số lần mất kết nối WS (24h)",
+   "datasource": {
+    "type": "grafana-postgresql-datasource",
+    "uid": "bdi-pg"
+   },
+   "gridPos": {
+    "x": 12,
+    "y": 0,
+    "w": 6,
+    "h": 4
+   },
+   "fieldConfig": {
+    "defaults": {
+     "unit": "none"
+    },
+    "overrides": []
+   },
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "grafana-postgresql-datasource",
+      "uid": "bdi-pg"
+     },
+     "format": "table",
+     "rawQuery": true,
+     "editorMode": "code",
+     "rawSql": "SELECT count(*) FROM ws_gaps WHERE disconnected_at > now() - interval '24 hours'"
+    }
+   ]
+  },
+  {
+   "id": 4,
+   "type": "stat",
+   "title": "Bản ghi backfill qua REST (24h)",
+   "datasource": {
+    "type": "grafana-postgresql-datasource",
+    "uid": "bdi-pg"
+   },
+   "gridPos": {
+    "x": 18,
+    "y": 0,
+    "w": 6,
+    "h": 4
+   },
+   "fieldConfig": {
+    "defaults": {
+     "unit": "none"
+    },
+    "overrides": []
+   },
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "grafana-postgresql-datasource",
+      "uid": "bdi-pg"
+     },
+     "format": "table",
+     "rawQuery": true,
+     "editorMode": "code",
+     "rawSql": "SELECT coalesce(sum(backfilled),0) FROM ws_gaps WHERE disconnected_at > now() - interval '24 hours'"
+    }
+   ]
+  },
+  {
+   "id": 5,
+   "type": "timeseries",
+   "title": "Giá đóng cửa theo nguồn — $symbol",
+   "datasource": {
+    "type": "grafana-postgresql-datasource",
+    "uid": "bdi-pg"
+   },
+   "gridPos": {
+    "x": 0,
+    "y": 4,
+    "w": 12,
+    "h": 8
+   },
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "grafana-postgresql-datasource",
+      "uid": "bdi-pg"
+     },
+     "format": "time_series",
+     "rawQuery": true,
+     "editorMode": "code",
+     "rawSql": "SELECT minute AS time, source AS metric, close::float AS value FROM candles WHERE symbol = '$symbol' AND $__timeFilter(minute) ORDER BY 1"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "custom": {
+      "lineWidth": 2
+     }
+    },
+    "overrides": []
+   }
+  },
+  {
+   "id": 6,
+   "type": "timeseries",
+   "title": "Số trade / phút: stream vs official — $symbol",
+   "datasource": {
+    "type": "grafana-postgresql-datasource",
+    "uid": "bdi-pg"
+   },
+   "gridPos": {
+    "x": 12,
+    "y": 4,
+    "w": 12,
+    "h": 8
+   },
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "grafana-postgresql-datasource",
+      "uid": "bdi-pg"
+     },
+     "format": "time_series",
+     "rawQuery": true,
+     "editorMode": "code",
+     "rawSql": "SELECT minute AS time, source AS metric, trades AS value FROM candles WHERE symbol = '$symbol' AND source IN ('stream','official','batch') AND $__timeFilter(minute) ORDER BY 1"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "custom": {
+      "lineWidth": 2
+     }
+    },
+    "overrides": []
+   }
+  },
+  {
+   "id": 7,
+   "type": "timeseries",
+   "title": "Độ trễ ghi nến stream (giây sau khi phút kết thúc)",
+   "datasource": {
+    "type": "grafana-postgresql-datasource",
+    "uid": "bdi-pg"
+   },
+   "gridPos": {
+    "x": 0,
+    "y": 12,
+    "w": 12,
+    "h": 8
+   },
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "grafana-postgresql-datasource",
+      "uid": "bdi-pg"
+     },
+     "format": "time_series",
+     "rawQuery": true,
+     "editorMode": "code",
+     "rawSql": "SELECT minute AS time, symbol AS metric, extract(epoch FROM emitted_at - minute - interval '1 minute') AS value FROM candles WHERE source='stream' AND $__timeFilter(minute) ORDER BY 1"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "custom": {
+      "lineWidth": 2
+     },
+     "unit": "s"
+    },
+    "overrides": []
+   }
+  },
+  {
+   "id": 8,
+   "type": "table",
+   "title": "Khoảng trống WS + backfill",
+   "datasource": {
+    "type": "grafana-postgresql-datasource",
+    "uid": "bdi-pg"
+   },
+   "gridPos": {
+    "x": 12,
+    "y": 12,
+    "w": 12,
+    "h": 8
+   },
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "grafana-postgresql-datasource",
+      "uid": "bdi-pg"
+     },
+     "format": "table",
+     "rawQuery": true,
+     "editorMode": "code",
+     "rawSql": "SELECT symbol, disconnected_at, reconnected_at, backfilled, reason FROM ws_gaps ORDER BY disconnected_at DESC LIMIT 50"
+    }
+   ]
+  },
+  {
+   "id": 9,
+   "type": "table",
+   "title": "Sự cố chủ động (chaos)",
+   "datasource": {
+    "type": "grafana-postgresql-datasource",
+    "uid": "bdi-pg"
+   },
+   "gridPos": {
+    "x": 0,
+    "y": 20,
+    "w": 12,
+    "h": 8
+   },
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "grafana-postgresql-datasource",
+      "uid": "bdi-pg"
+     },
+     "format": "table",
+     "rawQuery": true,
+     "editorMode": "code",
+     "rawSql": "SELECT scenario, phase, at, note FROM chaos_events ORDER BY at DESC LIMIT 50"
+    }
+   ]
+  },
+  {
+   "id": 10,
+   "type": "table",
+   "title": "Cảnh báo bất thường",
+   "datasource": {
+    "type": "grafana-postgresql-datasource",
+    "uid": "bdi-pg"
+   },
+   "gridPos": {
+    "x": 12,
+    "y": 20,
+    "w": 12,
+    "h": 8
+   },
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "grafana-postgresql-datasource",
+      "uid": "bdi-pg"
+     },
+     "format": "table",
+     "rawQuery": true,
+     "editorMode": "code",
+     "rawSql": "SELECT symbol, minute, metric, round(mz_score::numeric,2) AS mz, source FROM anomalies WHERE $__timeFilter(minute) ORDER BY minute DESC LIMIT 100"
+    }
+   ]
+  }
+ ],
+ "templating": {
+  "list": [
+   {
+    "name": "symbol",
+    "type": "custom",
+    "query": "BTCUSDT,ETHUSDT,BNBUSDT,SOLUSDT,XRPUSDT",
+    "current": {
+     "text": "BTCUSDT",
+     "value": "BTCUSDT"
+    },
+    "options": [
+     {
+      "text": "BTCUSDT",
+      "value": "BTCUSDT",
+      "selected": true
+     },
+     {
+      "text": "ETHUSDT",
+      "value": "ETHUSDT",
+      "selected": false
+     },
+     {
+      "text": "BNBUSDT",
+      "value": "BNBUSDT",
+      "selected": false
+     },
+     {
+      "text": "SOLUSDT",
+      "value": "SOLUSDT",
+      "selected": false
+     },
+     {
+      "text": "XRPUSDT",
+      "value": "XRPUSDT",
+      "selected": false
+     }
+    ]
+   }
+  ]
+ },
+ "links": [
+  {
+   "title": "Kết quả thí nghiệm",
+   "type": "link",
+   "url": "/d/bdi-results"
+  }
+ ]
+}

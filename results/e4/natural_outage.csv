@@ -1,0 +1,6 @@
+incident,symbol,backfilled,reason,minutes_compared,minutes_matched
+"Máy ngủ ~5,7 giờ (13/10 19:12 → 14/10 00:53 UTC)",BTCUSDT,107084,recv_timeout,514,514
+"Máy ngủ ~5,7 giờ (13/10 19:12 → 14/10 00:53 UTC)",ETHUSDT,78768,recv_timeout,514,514
+"Máy ngủ ~5,7 giờ (13/10 19:12 → 14/10 00:53 UTC)",BNBUSDT,22092,recv_timeout,514,514
+"Máy ngủ ~5,7 giờ (13/10 19:12 → 14/10 00:53 UTC)",SOLUSDT,36162,recv_timeout,514,514
+"Máy ngủ ~5,7 giờ (13/10 19:12 → 14/10 00:53 UTC)",XRPUSDT,15968,recv_timeout,514,514
