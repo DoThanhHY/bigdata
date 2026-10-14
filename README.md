@@ -6,6 +6,9 @@ Kế hoạch gốc nằm ở [`plan.md`](plan.md). Repo này là phần hiện t
 
 ## Đọc gì trước
 
+> **Thành viên mới clone repo:** đọc [docs/07-huong-dan-thanh-vien.md](docs/07-huong-dan-thanh-vien.md) trước tiên.
+
+
 | Bước | Tài liệu | Nội dung |
 |---|---|---|
 | 1 | [docs/00-setup.md](docs/00-setup.md) | Cài đặt, bật hạ tầng, chạy test, kiểm tra luồng live |
@@ -16,6 +19,7 @@ Kế hoạch gốc nằm ở [`plan.md`](plan.md). Repo này là phần hiện t
 | 6 | [docs/04-demo.md](docs/04-demo.md) | Kịch bản demo trước hội đồng |
 | 7 | [docs/05-ket-qua.md](docs/05-ket-qua.md) | **Tổng hợp toàn bộ số liệu** E1–E7, C5 |
 | 8 | [docs/06-dan-y-slide.md](docs/06-dan-y-slide.md) | **Dàn ý slide** chi tiết + câu hỏi hội đồng |
+| 9 | [docs/07-huong-dan-thanh-vien.md](docs/07-huong-dan-thanh-vien.md) | **Việc của từng thành viên**: lệnh chạy, tiêu chí đạt, lịch |
 
 ## Kiến trúc tóm tắt
 
