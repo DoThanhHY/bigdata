@@ -1,6 +1,6 @@
 # 05 · Tổng hợp kết quả
 
-**Nhóm 3 · IT5427** · Số liệu chốt ngày 14/10/2026. Chi tiết từng thí nghiệm nằm trong [docs/experiments/](experiments/); số liệu gốc (CSV) và hình (PNG) nằm trong `results/`.
+**Nhóm 3 · IT5427** · Số liệu chốt ngày 14/10/2026 (E1 cập nhật 25/10/2026). Chi tiết từng thí nghiệm nằm trong [docs/experiments/](experiments/); số liệu gốc (CSV) và hình (PNG) nằm trong `results/`.
 
 Xem trực quan:
 - **Trang kết quả (web):** https://claude.ai/artifact/HCZmyQry8Uk5BDzHwDsUCP
@@ -10,7 +10,7 @@ Xem trực quan:
 
 | # | Câu hỏi | Kết quả chính | Trạng thái |
 |---|---|---|---|
-| E1 | Bỏ qua schema drift thì hỏng đến đâu? | Bản naive hỏng **100%** dữ liệu 2026 (0% nến đúng); bản drift-aware đúng **100%** | ✅ (SOL, XRP; chưa đủ 5 cặp) |
+| E1 | Bỏ qua schema drift thì hỏng đến đâu? | Bản naive hỏng **100%** dữ liệu 2026 (0% nến đúng, 15/15 tổ hợp cặp × tháng); bản drift-aware đúng **100%** ở cả 40 dòng | ✅ (5 cặp × 4 tháng) |
 | E2 | Batch có khớp official không? | **878 400/878 400** nến khớp tuyệt đối O/H/L/C/V + số trades | ✅ |
 | E3 | Watermark đánh đổi thế nào? | Dữ liệu thật: 100% khớp ở mọi watermark, độ trễ p95 tăng 11,9 → 36,1 s. Có 5% bản tin trễ ≤ 20 s: khớp **2,1%** ở W = 0 s, **100%** ở W = 30 s | ✅ |
 | E4 | Hệ thống chịu lỗi ra sao? | 4 kịch bản chủ động + máy ngủ 5,7 giờ: **0 nến thiếu/thừa/lệch**; phục hồi 5,7–25,6 s | ✅ |
@@ -37,20 +37,25 @@ Xem trực quan:
 
 ## E1 · Ablation schema drift — chứng minh C1
 
-| Cặp | Kỳ | Phiên bản | Bản ghi | % mốc vô lý | % nến đúng |
-|---|---|---|---|---|---|
-| SOLUSDT | 2022-11 | naive | 7 077 107 | 0% | 100% |
-| SOLUSDT | 2022-11 | drift-aware | 7 077 107 | 0% | 100% |
-| SOLUSDT | 2026-08 | naive | 4 977 119 | **100%** | **0%** |
-| SOLUSDT | 2026-08 | drift-aware | 4 977 119 | 0% | 100% |
-| XRPUSDT | 2022-11 | naive | 4 776 769 | 0% | 100% |
-| XRPUSDT | 2022-11 | drift-aware | 4 776 769 | 0% | 100% |
-| XRPUSDT | 2026-08 | naive | 6 016 728 | **100%** | **0%** |
-| XRPUSDT | 2026-08 | drift-aware | 6 016 728 | 0% | 100% |
+5 cặp × 4 tháng, gộp theo kỳ (25/10/2026):
 
+| Kỳ | Đơn vị | Phiên bản | Bản ghi | % mốc vô lý | % nến đúng |
+|---|---|---|---|---|---|
+| 2022-11 | ms | naive | 214 295 686 | 0% | 100% |
+| 2022-11 | ms | drift-aware | 214 295 686 | 0% | 100% |
+| 2026-06 | µs | naive | 84 092 148 | **100%** | **0%** |
+| 2026-06 | µs | drift-aware | 84 092 148 | 0% | 100% |
+| 2026-07 | µs | naive | 57 411 961 | **100%** | **0%** |
+| 2026-07 | µs | drift-aware | 57 411 961 | 0% | 100% |
+| 2026-08 | µs | naive | 62 357 036 | **100%** | **0%** |
+| 2026-08 | µs | drift-aware | 62 357 036 | 0% | 100% |
+
+- Tổng 418 156 831 bản ghi, 878 400 nến official. Mỗi cặp đều cho cùng một kết quả; bảng 40 dòng nằm trong [experiments/E1-drift-ablation.md](experiments/E1-drift-ablation.md).
 - Drift xảy ra ở hai chỗ: theo thời gian (CSV 2022 dùng ms, CSV 2026 dùng µs) và **giữa các nguồn** (WS JSON vẫn dùng ms, CSV 2026 dùng µs).
 - Một hàm suy đơn vị theo độ lớn giá trị xử lý được cả hai; contract test gồm 3 nguồn × 2 giai đoạn + giây/ns (13 case).
-- File: `results/e1/ablation.csv`. Chưa có hình; dùng bảng trên.
+- **Tái lập được:** chạy lại trên một máy khác (Windows 11, 32 GB), 8 dòng SOL và XRP trùng từng số với lần chạy 13/10.
+- **Hồ sơ nguồn:** cả 5 file 2022-11 có timestamp 13 chữ số (ms), cả 15 file 2026 có 16 chữ số (µs).
+- File: `results/e1/ablation.csv`, hình `results/e1/ablation.png`.
 
 ## E2 · Batch vs official — chứng minh C2, C3
 
@@ -220,9 +225,8 @@ Time-to-convergence: 100% nến hội tụ, p50 = 13,0 s. (*) p95 bị đội l�
 
 ## Hạn chế cần nêu trong báo cáo
 
-1. E1 mới chạy 2/5 cặp (kết luận khó thay đổi).
-2. E3 đo trên cửa sổ 30 phút (140 nến mỗi cấu hình).
-3. E6 và stress test đo khi máy tải cao (load 20–48), nên con số thời gian chỉ mang tính tương đối.
-4. Tham số E7 được chọn trên chính dữ liệu FTX; chưa kiểm trên sự kiện khác.
-5. C5 mới đo ~2 giờ.
-6. Mọi thứ chạy trên **một máy** 16 GB (local[*]); chưa thử cụm nhiều worker.
+1. E3 đo trên cửa sổ 30 phút (140 nến mỗi cấu hình).
+2. E6 và stress test đo khi máy tải cao (load 20–48), nên con số thời gian chỉ mang tính tương đối.
+3. Tham số E7 được chọn trên chính dữ liệu FTX; chưa kiểm trên sự kiện khác.
+4. C5 mới đo ~2 giờ.
+5. Mọi thứ chạy trên **một máy** 16 GB (local[*]); chưa thử cụm nhiều worker.

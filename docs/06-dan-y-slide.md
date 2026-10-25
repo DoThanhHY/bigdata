@@ -85,7 +85,7 @@
 ## Slide 6 · E1: Schema drift
 
 - **Tiêu đề:** Bỏ qua schema drift thì mất toàn bộ dữ liệu 2026
-- **Hình cần tạo:** biểu đồ cột nhóm (2022 vs 2026, naive vs drift-aware, trục Y = % nến đúng), dựng từ `results/e1/ablation.csv`. Hoặc dùng bảng 4 dòng:
+- **Hình:** `results/e1/ablation.png` (cột nhóm theo 4 kỳ, naive vs drift-aware, 5 cặp, 878 400 nến). Trên slide nên dùng bảng 4 ô làm chính, hình làm phụ:
 
 | | 2022 (ms) | 2026 (µs) |
 |---|---|---|
@@ -236,7 +236,7 @@
 
 | Slide | Nội dung | Nguồn |
 |---|---|---|
-| A1 | Bảng E1 đầy đủ (8 dòng) | 05-ket-qua.md · E1 |
+| A1 | Bảng E1 gộp theo kỳ (8 dòng); bảng đủ 40 dòng nếu bị hỏi | 05-ket-qua.md · E1, experiments/E1-drift-ablation.md |
 | A2 | Bảng E3 đầy đủ: trigger 2 s, trigger 0, jitter | `results/e3/tradeoff.csv` |
 | A3 | Bảng E4 sự cố + 4 timeline | `results/e4/` |
 | A4 | Bảng E5 P/R/F1 đầy đủ + `blocking_cost.png` | `results/e5/` |
@@ -254,6 +254,6 @@
 ## Việc cần làm để hoàn thiện slide
 
 - [ ] Vẽ sơ đồ kiến trúc (slide 4)
-- [ ] Tạo biểu đồ cột E1 từ `results/e1/ablation.csv` (slide 6), hoặc dùng bảng
+- [x] Tạo biểu đồ cột E1 từ `results/e1/ablation.csv` (slide 6): `results/e1/ablation.png`
 - [ ] Quay video demo dự phòng 60 s (slide 11)
-- [ ] Cập nhật số liệu nếu chạy thêm E1 đủ 5 cặp, E7 trên LUNA, C5 đủ 24h
+- [ ] Cập nhật số liệu nếu chạy thêm E7 trên LUNA, C5 đủ 24h (E1 đủ 5 cặp đã chạy 25/10: kết luận không đổi)
