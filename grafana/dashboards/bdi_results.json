@@ -383,7 +383,7 @@
    "id": 10,
    "type": "barchart",
    "title": "E3 · % nến khớp official theo watermark",
-   "description": "Dữ liệu thật lệch thứ tự tối đa 0,78 s nên mọi watermark đều 100%",
+   "description": "Replay 1× trên cửa sổ Azure 2 giờ: không có bản tin bị loại, mọi watermark đều khớp 100%",
    "datasource": {
     "type": "grafana-postgresql-datasource",
     "uid": "bdi-pg"

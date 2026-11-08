@@ -30,7 +30,7 @@ def _coerce(value: str, like: Any) -> Any:
 
 @lru_cache(maxsize=1)
 def settings() -> dict[str, Any]:
-    with open(CONFIG_PATH) as f:
+    with open(CONFIG_PATH, encoding="utf-8") as f:
         cfg = yaml.safe_load(f)
     for key, value in os.environ.items():
         if not key.startswith("BDI__"):

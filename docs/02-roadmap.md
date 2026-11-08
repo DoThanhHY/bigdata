@@ -1,15 +1,15 @@
-# 02 · Lộ trình và việc cần làm
+# 02 · Lộ trình và trạng thái thực hiện
 
 Đánh `[x]` khi xong. Mỗi mục có **đầu ra kiểm chứng được**: một file trong `results/`, một bảng trong DB, hoặc một test xanh.
 
-> **Hôm nay (13/10/2026) là checkpoint.** Nếu luồng streaming chưa chạy trọn vẹn cho ít nhất 1 cặp, làm mục **Tuần 0** trước mọi thứ khác.
+> **Checkpoint ban đầu:** 13/10/2026. Trạng thái dưới đây được cập nhật ngày 08/11/2026; giữ các mốc cũ để truy vết quá trình thực nghiệm.
 
 ## Phân công (điền tên)
 
 | Mảng | Phụ trách | Phạm vi | Thí nghiệm |
 |---|---|---|---|
 | 1 | _______ | Ingestion batch, checksum, lineage | E1, E2 |
-| 2 | _______ | Streaming, Kafka, chaos test | E3, E4 |
+| 2 | Đào Quang Huy | Streaming, Kafka, chaos test | E3, E4, C3, C5 |
 | 3 | _______ | Record linkage, truy vấn xấp xỉ | E5, E6 |
 | 4 | _______ | Thống kê mô tả, phát hiện bất thường, Grafana | E7 |
 
@@ -18,11 +18,11 @@
 ## Tuần 0: Checkpoint streaming (làm ngay)
 
 - [x] `make up` chạy được, Postgres có đủ bảng (`\dt` trong `make psql`)
-- [x] `make test` xanh: 21/21 test (13/10)
+- [x] `make test` xanh: 21/21 test tại checkpoint 13/10; bản hiện tại 22/22 test xanh ngày 08/11
 - [x] `make up-all`, sau 2 phút `make live-status` thấy nến `stream` của cả 5 cặp
 - [x] Grafana hiển thị panel "Giá đóng cửa theo nguồn" (đã kiểm qua API)
 - [x] `data/lake/bronze/raw_aggtrades/` có file mới sau mỗi 30 giây (offset liên tục, không thiếu/trùng)
-- [ ] **Để luồng live chạy liên tục ≥ 24h** (`caffeinate`). Đây là dữ liệu cho E3, E4, E5 và C5
+- [x] **Để luồng live chạy liên tục ≥ 24h**. Cửa sổ C5 chính thức: `[2026-11-07T11:34:00Z, 2026-11-08T11:34:00Z)`
 - [x] Ghi lại ngày giờ bắt đầu chạy vào đây: `2026-10-13 15:07 UTC` (container `ws-producer`, `stream-candles`, `raw-archive`)
 - [x] Kiểm tra nhanh stream vs official qua REST (`bdi.ingest.rest_klines`): 10/11 phút khớp tuyệt đối mọi trường; phút lệch duy nhất là `CAPTURE_START` (producer khởi động giữa phút). Các lần restart producer đều được backfill và khớp 100%
 
@@ -44,14 +44,14 @@
 
 - [x] Tải official + aggTrades ngày 13/10 (BTC, ETH); các khoảng khác dùng `rest_klines`
 - [x] Đối soát live (93/94, 514/514 phút khớp; xem E4): `python -m bdi.reconcile.compare --left stream --start <ngày> --end <ngày+1> --run-id live_d1 --with-late 5`
-- [x] **E3** bản đầu (30 phút dữ liệu thật): [kết quả](experiments/E3-watermark-tradeoff.md). Luồng thật gần như không có bản tin trễ (tối đa 0,78 s), 100% khớp ở mọi watermark, độ trễ p95 tăng 11,9 → 36,1 s
-- [x] E3 với tiêm độ trễ (5% bản tin trễ ≤ 20 s): % khớp 2% ở W = 0 s, 100% ở W = 30 s. Hình đầy đủ ở `results/e3/tradeoff.png`
-- [ ] (tùy chọn) Chạy lại E3 trên cửa sổ ≥ 2 giờ sôi động
+- [x] **E3 Azure 2 giờ:** [kết quả](experiments/E3-watermark-tradeoff.md). Replay 1× 60.001 bản tin; W = 0/2/5/10/30 giây đều khớp 100%, p95 tăng 5,70 → 35,09 giây
+- [x] E3 với jitter 5% bản tin trễ tối đa 20 giây: W = 0 giây khớp 12,20%; W = 30 giây khớp 100%, p95 = 35,24 giây. Kết quả canonical ở `results/e3/tradeoff.*`
+- [x] Lưu rõ hạn chế: validator đánh dấu `[invalid]` vì micro-batch p95 vượt trigger 2 giây khoảng 6–12%; không dùng lượt này để tuyên bố đã đạt cổng hiệu năng
 - [x] E4 · sự cố tự nhiên (máy ngủ 5,7 giờ): [kết quả](experiments/E4-fault-injection.md). Backfill 260 nghìn bản ghi, 514/514 phút × 5 cặp khớp official
 - [x] **E4** chủ động: [kết quả](experiments/E4-fault-injection.md). 4 kịch bản streaming 0 nến thiếu/thừa/lệch, phục hồi 5,7–25,6 s
 - [x] E4 · idempotent: `chaos.sh batch_rerun` in ra `[ok] idempotent` (175 680 dòng, md5 không đổi)
-- [ ] E4 · ngắt tự nhiên sau 24h: bảng `ws_gaps` có dòng với `reason` tương ứng
-- [ ] Grafana bản đầu: thêm panel theo ý nhóm, rồi export JSON vào `grafana/dashboards/`
+- [x] E4 · reconnect chủ động trước mốc 24 giờ: 5 symbol, backfill đủ 58 bản tin, không thiếu nến
+- [x] Grafana live có Candlestick, độ tươi, đối soát nguồn, khoảng trống WS và backfill
 
 ## Tuần 3: E5 + E6 + E7 (Mảng 3, Mảng 4)
 
@@ -65,11 +65,12 @@
 
 ## Tuần 4: Tổng hợp + báo cáo + demo
 
-- [ ] **C3**: bảng phân bố nguyên nhân lệch gộp từ E2, E3, E4
-- [x] **C5** sơ bộ: [kết quả](experiments/C5-source-policy.md). TTC p50 = 13 s, 100% nến hội tụ; bảng quy tắc chọn nguồn đã có số liệu
-- [ ] C5: đo lại trên 24h live khi máy rảnh, thêm cột batch sau T+1
+- [x] **C3**: đối soát live ghi nhận 5 `CAPTURE_START`, 0 `UNKNOWN`; E2/E4 không có nến lệch
+- [x] **C5 24 giờ cho Stream/Official:** [kết quả](experiments/C5-source-policy.md). 7.200 nến, 100% hội tụ; TTC p50 = 0,0 giây, p95 = 2,9 giây
+- [ ] C5: nạp Batch hai ngày 07–08/11 sau T+1 và chạy lại phân tích để có bảng đủ ba nguồn
 - [ ] **C6**: mô tả lineage, dẫn chứng bằng `SELECT source, file_checksum, watermark_config, pipeline_version FROM candles LIMIT 5`
-- [ ] Chốt toàn bộ hình trong `results/` và đưa vào báo cáo
+- [x] Đồng bộ kết quả E3/C3/C5 hiện có vào tài liệu; cập nhật lại sau khi có Batch C5
+- [ ] Chốt toàn bộ hình trong `results/` và đưa vào báo cáo/slide
 - [ ] Tập demo theo [04-demo.md](04-demo.md) ít nhất 2 lần
 
 ---

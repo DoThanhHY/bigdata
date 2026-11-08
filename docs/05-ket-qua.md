@@ -1,6 +1,6 @@
 # 05 · Tổng hợp kết quả
 
-**Nhóm 3 · IT5427** · Số liệu chốt ngày 14/10/2026. Chi tiết từng thí nghiệm nằm trong [docs/experiments/](experiments/); số liệu gốc (CSV) và hình (PNG) nằm trong `results/`.
+**Nhóm 3 · IT5427** · Cập nhật ngày 08/11/2026. Chi tiết từng thí nghiệm nằm trong [docs/experiments/](experiments/); số liệu gốc (CSV) và hình (PNG) nằm trong `results/`.
 
 Xem trực quan:
 - **Trang kết quả (web):** https://claude.ai/artifact/HCZmyQry8Uk5BDzHwDsUCP
@@ -12,12 +12,12 @@ Xem trực quan:
 |---|---|---|---|
 | E1 | Bỏ qua schema drift thì hỏng đến đâu? | Bản naive hỏng **100%** dữ liệu 2026 (0% nến đúng); bản drift-aware đúng **100%** | ✅ (SOL, XRP; chưa đủ 5 cặp) |
 | E2 | Batch có khớp official không? | **878 400/878 400** nến khớp tuyệt đối O/H/L/C/V + số trades | ✅ |
-| E3 | Watermark đánh đổi thế nào? | Dữ liệu thật: 100% khớp ở mọi watermark, độ trễ p95 tăng 11,9 → 36,1 s. Có 5% bản tin trễ ≤ 20 s: khớp **2,1%** ở W = 0 s, **100%** ở W = 30 s | ✅ |
+| E3 | Watermark đánh đổi thế nào? | Replay 1× trên Azure: 100% khớp ở mọi watermark, p95 tăng 5,70 → 35,09 s. Với jitter 5% tối đa 20 s: khớp **12,20%** ở W = 0 s và **100%** ở W = 30 s | ⚠️ có kết quả; validator hiệu năng chưa đạt |
 | E4 | Hệ thống chịu lỗi ra sao? | 4 kịch bản chủ động + máy ngủ 5,7 giờ: **0 nến thiếu/thừa/lệch**; phục hồi 5,7–25,6 s | ✅ |
 | E5 | Ghép mờ được không? | Ghép giữ thứ tự: **F1 = 0,995** (P 99,9%, R 99,0%) ở δ = 1 s; blocking giảm số cặp **250–2 750 lần** | ✅ |
 | E6 | Truy vấn xấp xỉ có đáng không? | Đếm phân biệt trên 420M giá trị: **nhanh hơn 12,7 lần, sai 0,76%**; phân vị chính xác hết RAM | ✅ (thời gian đo khi máy tải cao) |
 | E7 | Phát hiện được FTX không? | 8/11 và 9/11/2022 là **top-2 ngày** của tháng; stream trùng batch **111/111** báo động | ✅ (cần kiểm lại trên LUNA) |
-| C5 | Chọn nguồn thế nào? | Stream đầy đủ 100%, khớp 100%; hội tụ về official sau p50 = **13 s** | ⚠️ sơ bộ (~2 giờ đo) |
+| C5 | Chọn nguồn thế nào? | Cửa sổ 24 giờ: Stream đầy đủ/khớp 100%; 100% nến hội tụ, TTC p50 = **0,0 s**, p95 = **2,9 s** | ⚠️ còn thiếu Batch T+1 |
 
 ## Quy mô dữ liệu và hệ thống
 
@@ -31,7 +31,7 @@ Xem trực quan:
 | Lưu lượng live | trung bình 18,6 bản tin/s, p95 58/s |
 | Raw archive | 665 255+ bản tin, offset Kafka liên tục, không thiếu/trùng |
 | Công nghệ | PySpark 4.0.4, Kafka 3.9 (KRaft), Postgres 16, Grafana 11, Docker Compose |
-| Test | 21/21 xanh (contract test C1, batch = streaming C2, taxonomy C3, linkage C4, mzscore E7) |
+| Test | **22/22 xanh** ngày 08/11 (contract C1, batch = streaming C2, taxonomy C3, TTC/latency C5, linkage C4, mzscore E7) |
 
 ---
 
@@ -65,40 +65,34 @@ Xem trực quan:
 
 ## E3 · Trade-off watermark — chứng minh C2, C3, C5
 
-**Độ đảo thứ tự thật** (52 407 bản tin, 30 phút, 5 cặp):
+Lượt chính chạy trên VM Azure 4 vCPU, 16 GiB RAM. Cùng 60.001 bản tin của cửa sổ 08:00–10:00 UTC ngày 07/11/2026 được replay ở tốc độ `1×` cho mọi cấu hình; trigger là 2 giây.
 
-| Chỉ số | Giá trị |
-|---|---|
-| Độ trễ mạng `recv − T` | p50 11 ms · p95 329 ms · p99 893 ms · max 4,5 s |
-| % bản tin đến sau bản tin mới hơn | 4,12% |
-| Mức "lùi" tối đa so với event time lớn nhất đã thấy | **777 ms** (không bản tin nào > 1 s) |
-
-**Watermark trên dữ liệu thật** (trigger 2 s, 140 nến/cấu hình):
+**Watermark trên dữ liệu không tiêm jitter** (585 nến hoàn chỉnh/cấu hình):
 
 | Watermark | % khớp | Độ trễ p50 | Độ trễ p95 |
 |---|---|---|---|
-| 0 s | 100% | 6,2 s | 11,9 s |
-| 2 s | 100% | 8,4 s | 12,5 s |
-| 5 s | 100% | 13,2 s | 15,1 s |
-| 10 s | 100% | 17,2 s | 22,1 s |
-| 30 s | 100% | 35,0 s | 36,1 s |
+| 0 s | 100% | 4,84 s | 5,70 s |
+| 2 s | 100% | 6,92 s | 7,51 s |
+| 5 s | 100% | 9,23 s | 11,25 s |
+| 10 s | 100% | 15,24 s | 15,90 s |
+| 30 s | 100% | 34,44 s | 35,09 s |
 
-**Có tiêm độ trễ: 5% bản tin trễ ngẫu nhiên ≤ 20 s:**
+**Có tiêm độ trễ: 5% bản tin trễ ngẫu nhiên tối đa 20 giây** (590 nến hoàn chỉnh/cấu hình):
 
 | Watermark | % khớp | Bản tin bị loại | Độ trễ p95 |
 |---|---|---|---|
-| 0 s | **2,1%** | 1 936 | 15,9 s |
-| 2 s | 2,1% | 1 633 | 17,4 s |
-| 5 s | 2,9% | 1 265 | 18,0 s |
-| 10 s | 5,0% | 787 | 17,5 s |
-| 30 s | **100%** | 0 | 41,1 s |
+| 0 s | **12,20%** | 2.476 | 6,14 s |
+| 2 s | 14,75% | 2.157 | 8,06 s |
+| 5 s | 18,64% | 1.740 | 10,43 s |
+| 10 s | 33,05% | 1.008 | 16,17 s |
+| 30 s | **100%** | 0 | 35,24 s |
 
 Diễn giải:
-1. Watermark chỉ tiến giữa các micro-batch, nên độ lệch nhỏ hơn một micro-batch không bị loại. Luồng Binance thật lệch tối đa 0,78 s, vì vậy watermark nhỏ vẫn an toàn và chỉ đánh đổi độ trễ.
-2. Khi mạng xấu, chỉ 5% bản tin trễ đã làm hỏng ~98% nến, vì mỗi phút có hàng trăm bản tin. % khớp chỉ hồi phục khi watermark lớn hơn độ trễ tối đa. Đây là lý do batch cần làm nguồn chuẩn sau T+1.
-3. Trigger 0 (chạy liên tục) không nhanh hơn trên máy 16 GB vì chi phí cố định mỗi micro-batch và tranh CPU.
+1. Watermark chỉ tiến giữa các micro-batch. Trong lượt baseline, `late_rows_dropped = 0` ở cả năm cấu hình nên mọi watermark đều khớp 100%; khi W tăng, độ trễ tăng gần tuyến tính.
+2. Một nến chứa nhiều giao dịch, nên 5% bản tin trễ có thể làm phần lớn nến lệch. Tỷ lệ khớp chỉ trở lại 100% khi watermark lớn hơn mức jitter tối đa 20 giây.
+3. Replay lag tối đa chỉ 0,010 giây, nhưng micro-batch p95 là 2.123–2.232 ms, cao hơn trigger 2.000 ms khoảng 6–12%. Validator vì vậy ghi `[invalid]`; kết quả vẫn chứng minh trade-off nhưng không được trình bày như một lượt vượt cổng hiệu năng.
 
-Hình: `results/e3/tradeoff.png` (2 panel chung trục watermark: % khớp và độ trễ p95).
+Hình và bảng canonical: `results/e3/tradeoff.png`, `results/e3/tradeoff.csv`. Bản lưu có provenance nằm tại `results/e3-azure-20261108/`.
 
 ## E4 · Fault injection — chứng minh C3, C5, C6
 
@@ -111,7 +105,7 @@ Hình: `results/e3/tradeoff.png` (2 panel chung trục watermark: % khớp và �
 | **Sự cố tự nhiên: máy ngủ** | **5,7 giờ** | ~1,5 phút | **260 074** | **0 / 514 phút × 5 cặp** | 0 | 0 |
 | Chạy lại batch (XRP 2026-08) | | | | 175 680 dòng, md5 `407f1b6e…` không đổi | | |
 
-- Thiết kế then chốt: **backfill toàn bộ symbol trước khi đẩy tin live**. Watermark của Spark là toàn cục, nên nếu đẩy tin live trước thì dữ liệu backfill bị loại vì trễ.
+- Thiết kế then chốt: sau khi WebSocket kết nối lại, ứng dụng hoàn tất backfill toàn bộ symbol trước khi đọc/xử lý phần tin live đang được thư viện đệm. Watermark của Spark là toàn cục, nên nếu đưa tin live mới vào Kafka trước thì dữ liệu bù cũ có thể bị loại vì trễ.
 - Thêm các sự cố ngoài kế hoạch, đều tự phục hồi: 3 lần Binance ngắt vì "Pong timeout" khi máy quá tải; Postgres tự khởi động lại; `raw-archive` chết vì timeout heartbeat.
 - Hình: `results/e4/timeline_*.png` (đường stream trùng khít official qua vùng sự cố).
 
@@ -177,25 +171,27 @@ Phương pháp: modified z-score (Iglewicz–Hoaglin), |M| > 3,5, baseline 1 ng�
 - Lưu ý trung thực: cửa sổ và sàn được chọn sau khi xem dữ liệu tháng 11/2022, nên cần kiểm lại trên sự kiện khác (LUNA 5/2022).
 - Hình: `results/e7/ftx_btc.png`, `results/e7/alerts_per_day_nov22.png`.
 
-## C5 · Chính sách chọn nguồn (sơ bộ)
+## C5 · Chính sách chọn nguồn
 
-02:45–05:00 UTC 14/10, 5 cặp:
+Cửa sổ `[2026-11-07T11:34:00Z, 2026-11-08T11:34:00Z)`, 5 cặp × 1.440 phút = 7.200 nến cho mỗi nguồn hiện có và 100.826 phiên bản `stream:update`:
 
-| Nguồn | Completeness | Consistency | Timeliness p50 | p95* |
+| Nguồn | Completeness | Consistency | Timeliness p50 | p95 |
 |---|---|---|---|---|
-| `stream` (append, W = 5 s) | 100% | 100% | 24,2 s | 359 s |
-| `stream:update` (update, W = 30 s) | 100% | 100% | 10,0 s | 303 s |
-| batch / official | 100% (E2) | 100% (E2) | T+1 | |
+| `stream` (append, W = 5 s) | 100% | 100% | 11,36 s | 16,73 s |
+| `stream:update` (update, W = 30 s) | 100% | 100% | 0,00 s | 2,22 s |
+| `official` | 100% | 100% | 486,11 s | 486,87 s |
 
-Time-to-convergence: 100% nến hội tụ, p50 = 13,0 s. (*) p95 bị đội lên vì khoảng đo trùng lúc chạy chaos và lúc máy quá tải.
+`official` được REST poller ghi theo chu kỳ đối soát, nên timeliness của nó không đại diện cho kênh thời gian thực. Time-to-convergence của `stream:update`: 100% nến hội tụ; 64,44% có TTC = 0; p50 = 0,0 giây, p95 = 2,9 giây, p99 = 4,8 giây, lớn nhất 8,2 giây. TTC được chặn dưới tại 0 vì định nghĩa bắt đầu từ mốc hết phút.
+
+Kết quả trên đã chốt cho Stream/Official. Batch của ngày 08/11 chỉ có sau T+1; cần nạp hai ngày 07–08/11 và chạy lại đúng cửa sổ trước khi gọi đây là bảng ba nguồn hoàn chỉnh.
 
 | Nhu cầu | Nguồn | Căn cứ |
 |---|---|---|
-| Dashboard, cảnh báo | Streaming | Có nến sau ~10–24 s, khớp 100% (C5, E3) |
+| Dashboard, cảnh báo | Streaming | C5 24 giờ: completeness/consistency 100%, timeliness p50 11,36 s, p95 16,73 s |
 | Phân tích, báo cáo sau T+1 | Batch / official | 878 400/878 400 nến khớp (E2) |
-| Xung đột 3 nguồn | Official là chuẩn | |
+| Xung đột 3 nguồn | Official làm nguồn tham chiếu | Nguồn klines do Binance công bố; không gọi là căn cứ pháp lý |
 | Sau sự cố WS | Stream (đã backfill), batch kiểm chứng | E4: 0 nến lệch |
-| Mạng xấu, nhiều bản tin trễ | Batch | E3: 5% trễ làm khớp chỉ còn 2% ở W nhỏ |
+| Mạng xấu, nhiều bản tin trễ | Batch | E3 Azure: 5% trễ làm W=0 chỉ còn 12,20%; W=30 đạt 100% |
 
 ## C3, C6 · Taxonomy và lineage
 
@@ -221,8 +217,8 @@ Time-to-convergence: 100% nến hội tụ, p50 = 13,0 s. (*) p95 bị đội l�
 ## Hạn chế cần nêu trong báo cáo
 
 1. E1 mới chạy 2/5 cặp (kết luận khó thay đổi).
-2. E3 đo trên cửa sổ 30 phút (140 nến mỗi cấu hình).
+2. E3 dùng cửa sổ 2 giờ trên một VM Azure; validator hiệu năng chưa đạt vì micro-batch p95 vượt trigger 6–12%.
 3. E6 và stress test đo khi máy tải cao (load 20–48), nên con số thời gian chỉ mang tính tương đối.
 4. Tham số E7 được chọn trên chính dữ liệu FTX; chưa kiểm trên sự kiện khác.
-5. C5 mới đo ~2 giờ.
+5. C5 đã đo 24 giờ cho Stream/Official nhưng chưa có Batch cùng cửa sổ; mọi job chạy trên một máy nên chưa đại diện cho cụm production.
 6. Mọi thứ chạy trên **một máy** 16 GB (local[*]); chưa thử cụm nhiều worker.

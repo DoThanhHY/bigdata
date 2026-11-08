@@ -108,7 +108,7 @@ SELECT watermark_s || ' s' AS x,
        max(CASE WHEN jitter_pct > 0 THEN pct_match END) AS "5% bản tin trễ ≤ 20 s"
 FROM exp_e3 GROUP BY watermark_s ORDER BY watermark_s""", 0, y, 12, 8, unit="percent", minv=0, maxv=100,
     series={"Dữ liệu thật": BLUE, "5% bản tin trễ ≤ 20 s": ORANGE},
-    desc="Dữ liệu thật lệch thứ tự tối đa 0,78 s nên mọi watermark đều 100%"))
+    desc="Replay 1× trên cửa sổ Azure 2 giờ: không có bản tin bị loại, mọi watermark đều khớp 100%"))
 P.append(bars("E3 · Độ trễ ghi nến p95 theo watermark", """
 SELECT watermark_s || ' s' AS x,
        max(CASE WHEN jitter_pct = 0 AND trigger_s = 2 THEN latency_p95_s END) AS "Dữ liệu thật",
@@ -158,5 +158,5 @@ dash = {"uid": "bdi-results", "title": "BDI · Kết quả thí nghiệm", "time
         "time": {"from": "now-6h", "to": "now"}, "refresh": "", "panels": P, "editable": True,
         "links": [{"title": "Luồng live", "type": "link", "url": "/d/bdi-live"}]}
 out = Path(__file__).parent / "dashboards" / "bdi_results.json"
-out.write_text(json.dumps(dash, ensure_ascii=False, indent=1))
+out.write_text(json.dumps(dash, ensure_ascii=False, indent=1), encoding="utf-8")
 print(f"[ok] {out} · {len(P)} panel")

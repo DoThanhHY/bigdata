@@ -5,7 +5,7 @@
 | Thành phần | Phiên bản | Ghi chú |
 |---|---|---|
 | Docker + Compose | ≥ 24 / v2 | Chạy Kafka, Postgres, Grafana và pipeline live |
-| Python | 3.11 – 3.14 | Đã kiểm: PySpark 4.0.4 + pandas 3 chạy được trên 3.14 (21/21 test xanh). Image Docker dùng 3.11 |
+| Python | 3.11 – 3.14 | PySpark 4.0.4 + pandas 3; bộ test hiện có 22 test. Image Docker dùng Python 3.11 |
 | Java | 17 hoặc 21 | Spark 4.0 cần Java ≥ 17 (OpenJDK 21 qua Homebrew là được) |
 | RAM | ≥ 12 GB | Mỗi job Spark của E3 ~1 GB; `GROUP` điều chỉnh số job song song (mặc định 2) |
 | Ổ đĩa | ≈ 40–60 GB | 5 cặp × 4 tháng aggTrades (~185M dòng): CSV + parquet + Kafka |
@@ -40,7 +40,7 @@ make logs              # xem log
 make live-status       # sau ~2 phút phải thấy nến source='stream' cho cả 5 cặp
 ```
 
-Luồng live phải **chạy liên tục ít nhất 24h** vì E3, E4, E5 và C5 đều dùng dữ liệu này. Để máy không ngủ (macOS: `caffeinate -dims &`).
+Luồng live phải **chạy liên tục ít nhất 24h** khi thu một cửa sổ C5 mới. Trên macOS có thể dùng `caffeinate -dims &`; trên Windows cần đặt Sleep thành `Never` trong thời gian thu rồi khôi phục sau thí nghiệm. Cửa sổ C5 chính của nhóm đã hoàn tất, không cần thu lại chỉ để phân tích Batch T+1.
 
 Nếu `stream.binance.com` bị chặn: sửa lệnh của service `ws-producer` trong `docker-compose.yml` thành `["python","-m","bdi.ingest.ws_producer","--fallback"]`. Khi đó producer dùng `wss://data-stream.binance.vision`.
 

@@ -1,6 +1,8 @@
 # Dữ liệu thô / lake / checkpoint — KHÔNG đẩy lên GitHub (cam kết trong đề xuất, bẫy D7)
 data/
+dist/
 *.zip
+*.pem
 *.csv.gz
 spark-warehouse/
 metastore_db/
@@ -14,6 +16,8 @@ __pycache__/
 
 # Kết quả: giữ bảng + hình, bỏ log và file lớn
 results/**/logs/
+results/**/*.log
+results/**/progress/
 results/progress/
 results/reconcile/*_mismatches.csv.gz
 .env

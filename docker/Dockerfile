@@ -13,8 +13,10 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 # Tải sẵn connector Kafka cho Spark để container khởi động không cần mạng tới Maven
 RUN python -c "from pyspark.sql import SparkSession; \
-SparkSession.builder.master('local[1]').config('spark.jars.packages', \
-'org.apache.spark:spark-sql-kafka-0-10_2.13:4.0.4').getOrCreate().stop()"
+SparkSession.builder.master('local[1]') \
+.config('spark.jars.repositories', 'https://maven-central.storage-download.googleapis.com/maven2/') \
+.config('spark.jars.packages', 'org.apache.spark:spark-sql-kafka-0-10_2.13:4.0.4') \
+.getOrCreate().stop()"
 
 COPY config ./config
 COPY src ./src
