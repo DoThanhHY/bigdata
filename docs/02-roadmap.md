@@ -61,7 +61,7 @@
 - [x] **E7** replay FTX 100× trên stream: báo động stream trùng batch 111/111; nến khớp official 5 758/5 758
 - [x] E7 throughput sơ bộ: 13,9k–25,5k bản tin/s (khoảng 750–1 370 lần live)
 - [ ] **E7** stress test theo bậc (`e7_stress.sh stress`) trên máy rảnh → `results/e7/stress.png`
-- [ ] Thống kê mô tả (Mảng 4): số dòng, phân bố trades/phút, khối lượng theo cặp × tháng
+- [x] Thống kê mô tả (Mảng 4): số dòng, phân bố trades/phút, khối lượng theo cặp × tháng (`experiments/descriptive_stats.py` → `results/desc/`)
 
 ## Tuần 4: Tổng hợp + báo cáo + demo
 

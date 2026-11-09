@@ -33,6 +33,23 @@ Xem trực quan:
 | Công nghệ | PySpark 4.0.4, Kafka 3.9 (KRaft), Postgres 16, Grafana 11, Docker Compose |
 | Test | 21/21 xanh (contract test C1, batch = streaming C2, taxonomy C3, linkage C4, mzscore E7) |
 
+### Thống kê mô tả 5 cặp × 4 tháng (`experiments/descriptive_stats.py`)
+
+Tổng cộng **418 156 831 bản ghi `aggTrades`** (gộp từ **1 049 045 915 giao dịch khớp lệnh `trades`**) trên **878 400 phút**:
+
+| Cặp | `aggTrades` 11/2022 | `aggTrades` 6–8/2026 | Khối lượng 11/2022 (tỷ USDT) | Khối lượng 6–8/2026 (tỷ USDT) | `trades`/phút p50 (11/2022 vs 2026) | % mua chủ động (`is_buyer_maker=false`) 11/2022 vs 2026 |
+|---|---|---|---|---|---|---|
+| BTCUSDT | 171 900 348 | 82 200 529 | 163,72 | 105,19 | 3 718 vs 1 577 | 50,22% vs 50,82–52,05% |
+| ETHUSDT | 22 564 378 | 72 254 973 | 30,25 | 50,22 | 427 vs 1 229 | 50,35% vs 49,68–51,49% |
+| BNBUSDT | 7 977 084 | 22 792 974 | 6,26 | 7,57 | 190 vs 326 | 52,33% vs 54,82–55,23% |
+| SOLUSDT | 7 077 107 | 13 772 739 | 4,59 | 16,74 | 121 vs 350 | 52,95% vs 52,46–55,12% |
+| XRPUSDT | 4 776 769 | 12 839 930 | 4,90 | 10,92 | 123 vs 243 | 48,49% vs 51,00–52,53% |
+| **Tổng (5 cặp)** | **214 295 686** | **203 861 145** | **209,72** | **190,63** | | |
+
+- Riêng **1 tháng 11/2022 (sự kiện FTX)** chiếm **51,2% tổng số `aggTrades`** (214,3M / 418,2M dòng) và **52,4% tổng khối lượng USDT** (209,7 tỷ USDT) của cả 4 tháng; đặc biệt `BTCUSDT` tháng 11/2022 có trung vị 3 718 trade/phút (p95 = 11 179, cực đại 60 643 trade/phút), cao gấp 2,4 lần giai đoạn 2026.
+- Ngày cao điểm FTX (8/11/2022), khối lượng `BTCUSDT` vọt lên **15,05 tỷ USDT/ngày**, gấp ~15 lần ngày thường năm 2026 (~1 tỷ USDT/ngày).
+- Bảng và hình: `results/desc/trades_by_month.csv`, `trades_per_minute_summary.csv`, `daily_quote_volume.csv`, `taker_buy_ratio.csv`, `trades_per_minute.png`, `daily_quote_volume.png`, `taker_buy_ratio.png`.
+
 ---
 
 ## E1 · Ablation schema drift — chứng minh C1
