@@ -193,7 +193,10 @@ Phương pháp: modified z-score (Iglewicz–Hoaglin), |M| > 3,5, baseline 1 ng�
 
 - **Stress test theo bậc tốc độ (`1×` → `1 000×`, 20 phút cao điểm FTX = 140 423 bản tin/bậc):** tốc độ xử lý đạt đỉnh **23 766 bản tin/s** ở `200×` (tải đưa vào 18 817 bản tin/s, độ trễ p50 = 6,54 s, p95 = 7,75 s), gấp **1 278 lần** lưu lượng live trung bình (`results/e7/stress.csv`, `results/e7/stress.png`). Độ trễ p95 tạo đường cong chữ U: giảm từ 9,86 s (`1×`, chờ watermark thời gian thực) xuống đáy 4,83 s (`50×`), rồi tăng lại lên 9,32 s ở `500×–1 000×` khi tải đưa vào (36k–47,5k bản tin/s) vượt công suất xử lý.
 - **Kiểm chứng ngoài mẫu trên sự kiện LUNA (5/2022, giữ nguyên W = 1440, |M| > 3,5, sàn 0,5%):** cả 4 ngày sự kiện đều đứng **top 1–4 của tháng 5/2022** — ngày 11/5 hạng **1** (384 báo động), 9/5 hạng **2** (237), 12/5 hạng **3** (106), 10/5 hạng **4** (82); trung bình tháng 46,4 báo động/ngày (`results/e7/sweep_luna.csv`). Riêng 4 ngày này chiếm 56,2% tổng báo động cả tháng, xác nhận tham số không bị overfit vào FTX.
-- Hình: `results/e7/ftx_btc.png`, `results/e7/alerts_per_day_nov22.png`, `results/e7/stress.png`.
+- **Mở rộng Học máy đa biến thuận chiều thời gian (`src/bdi/anomaly/ml.py`, `experiments/e7_ml_compare.py`, `results/e7/ml_comparison.csv`):** Trích xuất 11 đặc trưng vi mô & liên thị trường (cửa sổ trượt nhân quả $W=1440$ phút) và huấn luyện các mô hình `scikit-learn` hoàn toàn trên quá khứ (**LUNA `2022-05`**) để kiểm thử độc lập ở tương lai (**FTX `2022-11` + Quiet `2026-06..08`**):
+  - `RandomForest` và `HistGradientBoosting` nâng **F1-Score** từ `0,428` (Modified Z-Score) lên **`0,577 – 0,582`**, nâng **PR-AUC** gấp **3,1–3,4 lần** (từ `0,195` lên **`0,614 – 0,672`**), giảm hơn 2 lần báo động giả giai đoạn yên (`3,53 – 4,43` vs `9,36` báo động/ngày, đưa `SNR` từ `41,8` lên **`103,8 – 114,5`**).
+  - Bắt được **81,0%–90,5% (`145–162/179` phút)** các pha quét râu nến (*Flash Wick / Whipsaw*) trong vụ sập FTX mà `Modified Z-Score` đơn biến bỏ sót `100%` (`0/179`), với tốc độ suy luận đạt **0,974 – 1,320 ms / 1 000 dòng** (`757k – 1,03M dòng/giây`).
+- Hình: `results/e7/ftx_btc.png`, `results/e7/alerts_per_day_nov22.png`, `results/e7/stress.png`, `results/e7/ml_comparison_metrics.png`, `results/e7/ml_pr_feature_importance.png`.
 
 ## C5 · Chính sách chọn nguồn (sơ bộ)
 

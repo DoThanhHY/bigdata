@@ -1165,18 +1165,142 @@
   },
   {
    "id": 25,
+   "type": "table",
+   "title": "E7-ML · Đối sánh Thống kê vs Học máy (Train: 05/2022 LUNA -> Test: 11/2022 FTX + 2026)",
+   "description": "Thuận chiều thời gian: học trên quá khứ 05/2022 (LUNA), kiểm thử tương lai 11/2022 (FTX) + 2026-06..08",
+   "datasource": {
+    "type": "grafana-postgresql-datasource",
+    "uid": "bdi-pg"
+   },
+   "gridPos": {
+    "x": 0,
+    "y": 65,
+    "w": 14,
+    "h": 8
+   },
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "grafana-postgresql-datasource",
+      "uid": "bdi-pg"
+     },
+     "format": "table",
+     "rawQuery": true,
+     "editorMode": "code",
+     "rawSql": "\nSELECT model AS \"Mô hình\", category AS \"Nhóm\",\n       round(precision::numeric, 3) AS \"Precision\",\n       round(recall::numeric, 3) AS \"Recall\",\n       round(f1::numeric, 3) AS \"F1-Score\",\n       round(roc_auc::numeric, 4) AS \"ROC-AUC\",\n       round(pr_auc::numeric, 3) AS \"PR-AUC\",\n       round(quiet_test_per_day::numeric, 2) AS \"Báo động/ngày (2026)\",\n       round(ftx_event_share_pct::numeric, 1) AS \"% Cảnh báo FTX\",\n       whipsaw_caught_ftx AS \"Bắt Flash Wick (/179)\",\n       round(fit_time_s::numeric, 2) AS \"Train (s)\",\n       round(infer_ms_per_1k::numeric, 3) AS \"Infer (ms/1k dòng)\"\nFROM exp_e7_ml"
+    }
+   ],
+   "options": {
+    "showHeader": true,
+    "cellHeight": "sm"
+   },
+   "fieldConfig": {
+    "defaults": {},
+    "overrides": []
+   }
+  },
+  {
+   "id": 26,
+   "type": "barchart",
+   "title": "E7-ML · F1-Score & PR-AUC trên Tập Test Tương lai (FTX + 2026)",
+   "description": "Random Forest và HistGradientBoosting đạt F1 ~0,58 và PR-AUC ~0,61–0,67 (gấp >3 lần Baseline)",
+   "datasource": {
+    "type": "grafana-postgresql-datasource",
+    "uid": "bdi-pg"
+   },
+   "gridPos": {
+    "x": 14,
+    "y": 65,
+    "w": 10,
+    "h": 8
+   },
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "grafana-postgresql-datasource",
+      "uid": "bdi-pg"
+     },
+     "format": "table",
+     "rawQuery": true,
+     "editorMode": "code",
+     "rawSql": "\nSELECT replace(model, ' (Baseline)', '') AS x,\n       round(f1::numeric, 3) AS \"F1-Score\",\n       round(pr_auc::numeric, 3) AS \"PR-AUC\"\nFROM exp_e7_ml"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "unit": "none",
+     "custom": {
+      "fillOpacity": 90,
+      "lineWidth": 0
+     }
+    },
+    "overrides": [
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "F1-Score"
+      },
+      "properties": [
+       {
+        "id": "color",
+        "value": {
+         "mode": "fixed",
+         "fixedColor": "#2a78d6"
+        }
+       }
+      ]
+     },
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "PR-AUC"
+      },
+      "properties": [
+       {
+        "id": "color",
+        "value": {
+         "mode": "fixed",
+         "fixedColor": "#eb6834"
+        }
+       }
+      ]
+     }
+    ]
+   },
+   "options": {
+    "xField": "x",
+    "orientation": "vertical",
+    "showValue": "auto",
+    "stacking": "none",
+    "groupWidth": 0.7,
+    "barWidth": 0.9,
+    "xTickLabelRotation": 0,
+    "legend": {
+     "showLegend": true,
+     "displayMode": "list",
+     "placement": "bottom"
+    },
+    "tooltip": {
+     "mode": "multi"
+    }
+   }
+  },
+  {
+   "id": 27,
    "type": "row",
    "title": "Thống kê mô tả · 5 cặp × 4 tháng (418,2 triệu dòng aggTrades)",
    "collapsed": false,
    "gridPos": {
     "x": 0,
-    "y": 65,
+    "y": 73,
     "w": 24,
     "h": 1
    }
   },
   {
-   "id": 26,
+   "id": 28,
    "type": "table",
    "title": "Thống kê mô tả · Quy mô giao dịch & khối lượng theo cặp × tháng",
    "description": "",
@@ -1186,7 +1310,7 @@
    },
    "gridPos": {
     "x": 0,
-    "y": 66,
+    "y": 74,
     "w": 14,
     "h": 8
    },
@@ -1213,7 +1337,7 @@
    }
   },
   {
-   "id": 27,
+   "id": 29,
    "type": "barchart",
    "title": "Thống kê mô tả · Khối lượng (tỷ USDT): 11/2022 (FTX) vs TB tháng 2026",
    "description": "Riêng tháng 11/2022 chiếm 52,4% tổng khối lượng USDT của cả 4 tháng",
@@ -1223,7 +1347,7 @@
    },
    "gridPos": {
     "x": 14,
-    "y": 66,
+    "y": 74,
     "w": 10,
     "h": 8
    },

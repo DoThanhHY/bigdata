@@ -178,6 +178,28 @@ FROM exp_e7_stress ORDER BY speed""", 12, y, 12, 8, unit="s",
     series={"Độ trễ p50": AQUA, "Độ trễ p95": BLUE},
     desc="Đường cong chữ U: đáy 4,83 s ở 50×, tăng lại khi tải vượt công suất")); y += 8
 
+P.append(table("E7-ML · Đối sánh Thống kê vs Học máy (Train: 05/2022 LUNA -> Test: 11/2022 FTX + 2026)", """
+SELECT model AS "Mô hình", category AS "Nhóm",
+       round(precision::numeric, 3) AS "Precision",
+       round(recall::numeric, 3) AS "Recall",
+       round(f1::numeric, 3) AS "F1-Score",
+       round(roc_auc::numeric, 4) AS "ROC-AUC",
+       round(pr_auc::numeric, 3) AS "PR-AUC",
+       round(quiet_test_per_day::numeric, 2) AS "Báo động/ngày (2026)",
+       round(ftx_event_share_pct::numeric, 1) AS "% Cảnh báo FTX",
+       whipsaw_caught_ftx AS "Bắt Flash Wick (/179)",
+       round(fit_time_s::numeric, 2) AS "Train (s)",
+       round(infer_ms_per_1k::numeric, 3) AS "Infer (ms/1k dòng)"
+FROM exp_e7_ml""", 0, y, 14, 8,
+    desc="Thuận chiều thời gian: học trên quá khứ 05/2022 (LUNA), kiểm thử tương lai 11/2022 (FTX) + 2026-06..08"));
+P.append(bars("E7-ML · F1-Score & PR-AUC trên Tập Test Tương lai (FTX + 2026)", """
+SELECT replace(model, ' (Baseline)', '') AS x,
+       round(f1::numeric, 3) AS "F1-Score",
+       round(pr_auc::numeric, 3) AS "PR-AUC"
+FROM exp_e7_ml""", 14, y, 10, 8,
+    series={"F1-Score": BLUE, "PR-AUC": ORANGE},
+    desc="Random Forest và HistGradientBoosting đạt F1 ~0,58 và PR-AUC ~0,61–0,67 (gấp >3 lần Baseline)")); y += 8
+
 P.append(row("Thống kê mô tả · 5 cặp × 4 tháng (418,2 triệu dòng aggTrades)", y)); y += 1
 P.append(table("Thống kê mô tả · Quy mô giao dịch & khối lượng theo cặp × tháng", """
 SELECT symbol AS "Cặp", month AS "Tháng", n_minutes AS "Số phút",

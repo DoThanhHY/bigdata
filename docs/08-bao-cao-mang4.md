@@ -100,6 +100,24 @@ Giữ nguyên hoàn toàn bộ tham số đã chọn ($W = 1440$, $|M| > 3,5$, s
   - Tốc độ xử lý của Spark đạt đỉnh **23 766 bản tin/s** ở bậc `200×` (tải đưa vào `18 817 bản tin/s`, độ trễ p50 = `6,54 s`, p95 = `7,75 s`), gấp **1 278 lần** lưu lượng live trung bình (`18,6 bản tin/s`).
   - Độ trễ ghi nến p95 tạo đường cong chữ U: từ `9,86 s` ở `1×` (do chờ watermark 5s theo thời gian thực), giảm xuống đáy **`4,83 s`** ở `50×`, rồi tăng lại lên `9,32 s` ở `500×–1 000×` khi tải đưa vào (`36k–47,5k bản tin/s`) vượt ngưỡng công suất xử lý của 4 luồng CPU.
 
+#### d) Mở rộng Học máy Đa biến (E7-ML: Isolation Forest, Random Forest & HistGradientBoosting)
+Để khắc phục điểm mù của phương pháp đơn biến (bỏ sót các pha "rút râu nến" / *Flash Wick* khi giá đóng cửa rút chân về gần giá mở cửa dù biên độ đỉnh–đáy và khối lượng nổ tung), nhóm xây dựng module `src/bdi/anomaly/ml.py` và kịch bản `experiments/e7_ml_compare.py` trích xuất **11 đặc trưng cấu trúc vi mô và đồng pha liên thị trường** (`abs_return`, `hl_range`, `wick_ratio`, `mz_return`, `mz_range`, `mz_volume`, `mz_trades`, `mz_avg_size`, `roll15_mz_return`, `market_mz_return`, `market_mz_volume`).
+
+Bảng đối sánh kết quả kiểm thử thuận chiều thời gian lịch sử (**Zero Time-Travel**: học trên quá khứ **LUNA `2022-05`**, kiểm thử độc lập trên tương lai **FTX `2022-11`** + **Quiet `2026-06..08`**, `results/e7/ml_comparison.csv`, hình `results/e7/ml_comparison_metrics.png` và `results/e7/ml_pr_feature_importance.png`):
+
+| Mô hình (`scikit-learn`) | Nhóm phương pháp | Precision | Recall | F1-Score | ROC-AUC | PR-AUC | Báo động/ngày (`2026`) | % Cảnh báo FTX | Bắt Flash Wick (`/179`) | SNR (`FTX / 2026`) | Train (`s`) | Suy luận (`ms / 1k dòng`) |
+|---|---|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
+| **Modified Z-Score (Baseline)** | Thống kê đơn biến | 0,295 | 0,781 | 0,428 | 0,9091 | 0,195 | 9,36 | 43,4% | 0 (0,0%) | 41,8 | 0,00 | 0,005 |
+| **Isolation Forest** | Unsupervised ML | 0,281 | 0,792 | 0,415 | 0,9985 | 0,280 | 9,60 | 49,1% | 145 (81,0%) | 49,9 | 1,27 | 7,762 |
+| **Elliptic Envelope (Mahalanobis)** | Unsupervised ML | 0,289 | 0,822 | 0,427 | 0,9986 | 0,308 | 9,78 | 53,3% | 163 (91,1%) | 53,6 | 14,66 | 0,064 |
+| **Logistic Regression** | Supervised ML | 0,376 | 0,738 | 0,498 | 0,9989 | 0,473 | 4,33 | **62,3%** | 106 (59,2%) | 113,2 | 2,48 | 0,069 |
+| **Random Forest** | Supervised ML | **0,456** | 0,806 | **0,582** | 0,9994 | 0,614 | **3,53** | 55,6% | 101 (56,4%) | **114,5** | 7,03 | 1,320 |
+| **HistGradientBoosting (XGBoost/LGBM)** | Supervised ML | 0,422 | **0,910** | 0,577 | **0,9995** | **0,672** | 4,43 | 52,2% | **162 (90,5%)** | 103,8 | 5,21 | **0,974** |
+
+- **Khả năng tổng quát hóa tương lai (Past $\rightarrow$ Future Generalization):** Các mô hình cây học trên sự kiện LUNA (`05/2022`) và kiểm thử trên sự kiện FTX xảy ra 6 tháng sau (`11/2022`) nâng **F1-Score** từ `0,428` lên **`0,582` (`RandomForest`)** và **`0,577` (`HistGradientBoosting`)**, nâng **PR-AUC** gấp **3,1–3,4 lần** (từ `0,195` lên **`0,614 – 0,672`**), đồng thời giảm более 2 lần báo động giả ở tương lai năm 2026 (từ `9,36` xuống `3,53 – 4,43` báo động/ngày, đưa tỉ số Tín hiệu/Nhiễu `SNR` tăng từ `41,8` lên **`103,8 – 114,5`**).
+- **Bắt các pha quét râu nến (*Flash Wick / Whipsaw*):** Trong 2 ngày sập sàn FTX có **179 phút** biến động đỉnh–đáy cực mạnh ($\ln(H/L) \ge 0,8\%$, $M(\text{range}) > 3,5$, $M(\text{vol}) > 2,0$) nhưng giá đóng cửa rút chân làm $|\text{log\_return}| < 0,5\%$. `Modified Z-Score` đơn biến bỏ sót **100% (`0/179`)**, trong khi `Isolation Forest` bắt được **81,0% (`145/179`)** và `HistGradientBoosting` bắt được **90,5% (`162/179`)**.
+- **Độ quan trọng đặc trưng & Tốc độ thực thi:** Biên độ đỉnh–đáy trong phút (`hl_range`: **26,7%** và `mz_range`: **25,1%**) chiếm **51,8%** quyền quyết định. Về tốc độ, `HistGradientBoosting` huấn luyện mất `5,21 s` và suy luận đạt **0,974 ms / 1 000 dòng** (`> 1,02 triệu dòng/giây`), không gây bất kỳ độ trễ nào khi nhúng vào `foreachBatch` của Spark Streaming.
+
 ### 2.4 Diễn giải
 1. **Hiệu quả của thiết kế cửa sổ 1 ngày kết hợp sàn tuyệt đối:** Giúp giữ nguyên ngưỡng chuẩn lý thuyết $|M| > 3,5$ của Iglewicz–Hoaglin mà vẫn đưa 2 ngày FTX (8–9/11/2022) lên đúng hạng 1 và 2 của tháng, đồng thời kéo số báo động mùa yên từ `201,8/ngày` xuống `9,3/ngày` (chỉ ~1,8 báo động/cặp/ngày).
 2. **Tính tổng quát hóa (không bị overfit):** Khi kiểm chứng độc lập trên tháng 5/2022 (sự kiện LUNA), cả 4 ngày sự kiện 9–12/5/2022 chiếm trọn 4 vị trí đầu bảng (hạng 1, 2, 3, 4) trong 31 ngày mà không cần thay đổi bất kỳ tham số nào.
