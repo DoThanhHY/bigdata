@@ -255,33 +255,14 @@ python experiments/c5_source_policy.py `
 
 ## 8. Slide và demo
 
-### Slide cần hoàn thiện
+### Slide cần hoàn thiện (việc duy nhất còn lại)
 
-- [x] **Slide 8:** E3 dữ liệu thật; cả 5 watermark đều khớp 100%; p95 tăng 5,70 → 35,09 giây.
-- [x] **Slide 9:** E3 jitter; 12,20% → 100%; thông điệp “nhanh thì thiếu, đủ thì chậm”.
-- [ ] **Slide 10:** E4; bảng phục hồi và 0 nến sai.
-- [ ] **Slide 11:** ba bước demo trực tiếp.
-- [ ] **Slide 16:** C5; ma trận chọn Stream/Batch/Official và TTC cuối cùng.
+- [ ] **Hoàn thiện các slide Mảng 2 (Slide 8, 9, 10, 11, 16)** và tập thuyết trình theo dàn ý tại `docs/06-dan-y-slide.md`.
 
-### Demo trực tiếp
+### Demo & Video dự phòng
 
-- [ ] Pipeline chạy ổn định ít nhất 30–60 phút trước demo.
-- [ ] Grafana `/d/bdi-live` mở sẵn, refresh 5–10 giây.
-- [ ] Terminal log mở sẵn:
-
-  ```powershell
-  docker compose logs -f --tail=30 ws-producer stream-candles
-  ```
-
-- [ ] Terminal chaos chuẩn bị sẵn `ws_netcut`.
-- [ ] Kiểm tra mạng hội trường; chuẩn bị `--fallback` nếu Binance WS bị chặn.
-- [ ] Quay video dự phòng 60–90 giây:
-  - Grafana trước sự cố;
-  - `ws_netcut`;
-  - reconnect và backfill;
-  - bảng `ws_gaps` có dòng mới;
-  - Stream tiếp tục hội tụ với Official.
-- [ ] Tập demo ít nhất hai lần và đo đúng thời lượng 3–5 phút.
+- [x] Đã quay video demo 90 giây hoàn chỉnh tại `results/demo/demo_mang2_90s.mp4` (Full HD, có phụ đề giải thích từng bước: luồng live, chaos ws_netcut, auto-reconnect, REST backfill theo aggId, phục hồi nến 100% khớp Official).
+- [x] Kịch bản demo trực tiếp sẵn sàng tại [04-demo.md](04-demo.md).
 
 ---
 
@@ -318,10 +299,10 @@ python experiments/c5_source_policy.py `
   python grafana/build_results_dashboard.py
   ```
 
-- [ ] Kiểm tra Git, không commit `data/`, checkpoint, raw CSV/ZIP hoặc thông tin nhạy cảm.
-- [ ] Rà soát các thay đổi chưa commit và chỉ đưa vào commit các file thuộc phạm vi Mảng 2.
-- [ ] Sau khi kết thúc thí nghiệm, khôi phục cấu hình đóng nắp/Sleep của Windows.
-- [ ] Dừng pipeline an toàn khi không còn cần thu dữ liệu:
+- [x] Kiểm tra Git, không commit `data/`, checkpoint, raw CSV/ZIP hoặc thông tin nhạy cảm.
+- [x] Rà soát các thay đổi chưa commit và chỉ đưa vào commit các file thuộc phạm vi Mảng 2.
+- [x] Sau khi kết thúc thí nghiệm, khôi phục cấu hình đóng nắp/Sleep của Windows.
+- [x] Dừng pipeline an toàn khi không còn cần thu dữ liệu:
 
   ```powershell
   docker compose --profile c5 stop

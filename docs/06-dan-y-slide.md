@@ -46,13 +46,14 @@
 - **Ghi chú người nói:** nhấn rằng "khớp" ở đây là khớp **tuyệt đối** từng chữ số, không phải gần đúng.
 - **Thời gian:** 1 phút
 
-## Slide 3 · Dữ liệu
+## Slide 3 · Dữ liệu & Thống kê mô tả
 
-- **Thông điệp:** 420 triệu giao dịch, hai giai đoạn, có cả sự kiện cực đoan.
-- Con số lớn: **419 835 967** dòng aggTrades · **39 GB** · 40 file kiểm sha256
-- Bảng nhỏ 2 cột:
-  - **2022-11:** sự kiện FTX, timestamp mili-giây
-  - **2026-06..08:** thị trường yên, timestamp micro-giây
+- **Thông điệp:** 420 triệu dòng aggTrades (1,05 tỷ giao dịch), hai giai đoạn đối lập, có cả sự kiện cực đoan.
+- Con số lớn: **419 835 967** dòng aggTrades · **1,049 tỷ** giao dịch khớp lệnh · **400,35 tỷ USDT** · **39 GB**
+- Bảng nhỏ 2 cột (từ `results/desc/trades_by_month.csv`):
+  - **2022-11 (FTX, ms):** 214,3M dòng aggTrades (51,2%) · 209,7 tỷ USDT (52,4%) · BTC p50 = 3 718 trade/phút
+  - **2026-06..08 (thị trường yên, µs):** 203,9M dòng aggTrades (3 tháng) · 190,6 tỷ USDT · BTC p50 = 1 577 trade/phút
+- Hình nhỏ kèm theo: `results/desc/trades_per_minute.png` hoặc `results/desc/daily_quote_volume.png`
 - Luồng live: 5 cặp, chạy liên tục từ 13/10, ~18,6 bản tin/s
 - **Ghi chú:** con số thực gấp 2,3 lần ước tính 185M trong đề xuất.
 - **Thời gian:** 45 s
@@ -184,19 +185,20 @@
 - Hộp "bài học phương pháp":
   - cửa sổ 60 phút → FTX đứng hạng 4 và hạng 29;
   - cửa sổ 1 ngày + sàn 0,5% → hạng **1 và 2**; báo động mùa yên giảm từ 202 xuống 9,3/ngày.
-- **Ghi chú (trung thực):** tham số được chọn trên chính dữ liệu này; sẽ kiểm lại trên LUNA 5/2022.
+- **Kiểm chứng ngoài mẫu (LUNA 5/2022, giữ nguyên tham số):** cả 4 ngày sự kiện (9–12/5/2022) đều chiếm trọn **hạng 1, 2, 3, 4** của tháng (384, 237, 106, 82 báo động; chiếm 56,2% cả tháng).
 - **Thời gian:** 1,5 phút
 
-## Slide 15 · E7: Replay FTX qua streaming
+## Slide 15 · E7: Replay FTX qua streaming & Stress test velocity
 
-- **Tiêu đề:** Cùng một bộ phát hiện, hai tầng cho kết quả giống hệt
+- **Tiêu đề:** Cùng một bộ phát hiện, hai tầng cho kết quả giống hệt; chịu tải tới 23,8 nghìn bản tin/s
 - Hai con số lớn cạnh nhau:
   - **111 / 111** báo động stream trùng batch
   - **5 758 / 5 758** nến stream khớp official
-- Con số velocity: xử lý **14–25 nghìn bản tin/s**, tức khoảng **750–1 370 lần** lưu lượng live
-- Ghi chú nhỏ: lần chạy này còn sống sót qua crash producer, OOM và chạy lại từ checkpoint.
+- Hình phụ / bên phải: `results/e7/stress.png` (Stress test 7 bậc tốc độ `1×` → `1 000×` trên 140 423 bản tin cao điểm FTX):
+  - Đỉnh xử lý của Spark đạt **23 766 bản tin/s** ở `200×` (độ trễ p95 = 7,75 s), gấp **1 278 lần** lưu lượng live trung bình (18,6 bản tin/s).
+  - Độ trễ p95 tạo đường cong chữ U: từ 9,86 s (`1×`, chờ watermark) xuống đáy **4,83 s** (`50×`), rồi tăng lại lên 9,32 s (`500×–1 000×`) khi tải đưa vào (36k–47,5k/s) vượt công suất.
 - Chân slide: *Chứng minh cho C2 (mở rộng sang phát hiện bất thường) · chữ V velocity*
-- **Thời gian:** 1 phút
+- **Thời gian:** 1,5 phút
 
 ## Slide 16 · C5: Chọn nguồn nào?
 
@@ -224,12 +226,12 @@
   - **RQ3:** stream cho độ tươi (p50 11,36 s; p95 16,73 s), batch dùng sau T+1, official làm nguồn tham chiếu (C5).
 - **Hạn chế (trung thực):**
   - chạy trên 1 máy 16 GB;
-  - E3 cửa sổ 2 giờ nhưng validator hiệu năng chưa đạt;
-  - E7 chưa kiểm trên sự kiện khác;
-  - C5 chạy trên một máy (chưa kiểm chứng cụm nhiều worker);
+  - E3 cửa sổ 2 giờ nhưng validator hiệu năng chưa đạt vì micro-batch p95 vượt trigger 6–12%;
+  - E7 không có nhãn chuẩn nên chỉ đánh giá theo sự kiện (FTX 11/2022 và LUNA 5/2022) cùng proxy báo động giả ở kỳ yên 2026;
+  - C5 đã đo trọn vẹn 24 giờ cho cả 3 nguồn nhưng chạy trên 1 máy (chưa kiểm chứng cụm nhiều worker);
 - **Hướng tiếp:**
   - cụm nhiều worker;
-  - thêm sự kiện LUNA;
+  - mở rộng bộ phát hiện sang mô hình học máy đa biến (Isolation Forest);
   - Delta Lake để làm time-travel cho lineage.
 - **Thời gian:** 1 phút
 
@@ -239,18 +241,18 @@
 
 | Slide | Nội dung | Nguồn |
 |---|---|---|
-| A1 | Bảng E1 đầy đủ (8 dòng) | 05-ket-qua.md · E1 |
-| A2 | Bảng E3 Azure: baseline + jitter, trigger 2 s | `results/e3/tradeoff.csv` |
+| A1 | Bảng E1 đầy đủ (8 dòng) + Thống kê mô tả (`results/desc/`) | 05-ket-qua.md · E1 |
+| A2 | Bảng E3 Azure đầy đủ: baseline + jitter, trigger 2 s | `results/e3/tradeoff.csv` |
 | A3 | Bảng E4 sự cố + 4 timeline | `results/e4/` |
 | A4 | Bảng E5 P/R/F1 đầy đủ + `blocking_cost.png` | `results/e5/` |
-| A5 | Bảng quét tham số E7 | `results/e7/sweep.csv` |
+| A5 | Bảng quét tham số E7 + kiểm chứng LUNA + Stress test | `results/e7/sweep.csv`, `sweep_luna.csv`, `stress.csv` |
 | A6 | Lược đồ Postgres + cột lineage, ví dụ 1 dòng `candles` thật | `sql/init.sql` |
 
 ## Câu hỏi hội đồng có thể hỏi (chuẩn bị sẵn)
 
 1. **"100% khớp có phải do so nhầm cùng một nguồn không?"** Không. Batch dựng từ aggTrades, official là klines, hai file khác nhau do Binance công bố riêng; có `file_checksum` khác nhau trong lineage.
 2. **"Sao phải tiêm độ trễ giả vào E3?"** Trong series baseline của cửa sổ Azure, không bản tin nào bị watermark loại nên cả năm cấu hình đều khớp 100%. Phần jitter có kiểm soát trả lời câu hỏi "nếu mạng xấu thì sao" và luôn được trình bày tách biệt với dữ liệu không tiêm jitter.
-3. **"Tham số E7 có bị overfit không?"** Có rủi ro, và nhóm đã ghi rõ. Sẽ kiểm lại trên LUNA với tham số giữ nguyên.
+3. **"Tham số E7 có bị overfit không?"** Nhóm đã kiểm chứng độc lập trên sự kiện LUNA (5/2022) với tham số giữ nguyên hoàn toàn (`W=1440`, `|M|>3,5`, sàn `0,5%`): 4 ngày 9–12/5/2022 chiếm trọn top 1–4 của tháng (11/5 hạng 1 với 384 báo động, 9/5 hạng 2 với 237, 12/5 hạng 3 với 106, 10/5 hạng 4 với 82).
 4. **"Exactly-once thật không?"** Không phải exactly-once theo nghĩa giao dịch phân tán. Đây là *hiệu quả tương đương*: producer at-least-once, dedup theo `agg_id` trong watermark, upsert theo khóa. E4 chứng minh bằng 0 nến thừa.
 5. **"Máy 16 GB có đại diện cho big data không?"** Dữ liệu 420M dòng / 39 GB vượt RAM, nên Spark phải xử lý ngoài bộ nhớ. Phần mở rộng cụm nhiều worker nằm ở hướng tiếp.
 

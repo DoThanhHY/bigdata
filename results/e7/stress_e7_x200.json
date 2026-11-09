@@ -1,0 +1,9 @@
+{
+  "run_id": "e7_x200",
+  "speed": 200.0,
+  "messages": 140423,
+  "offered_msg_per_s": 18817.35163427526,
+  "max_processed_rows_per_s": 23766.323024054982,
+  "latency_p50_s": 6.536929,
+  "latency_p95_s": 7.7529829999999995
+}

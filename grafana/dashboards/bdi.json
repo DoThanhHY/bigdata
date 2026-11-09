@@ -388,6 +388,81 @@
      "rawSql": "SELECT symbol, minute, metric, round(mz_score::numeric,2) AS mz, source FROM anomalies WHERE $__timeFilter(minute) ORDER BY minute DESC LIMIT 100"
     }
    ]
+  },
+  {
+   "id": 11,
+   "type": "timeseries",
+   "title": "Khối lượng giao dịch USDT / phút theo nguồn — $symbol",
+   "datasource": {
+    "type": "grafana-postgresql-datasource",
+    "uid": "bdi-pg"
+   },
+   "gridPos": {
+    "x": 0,
+    "y": 28,
+    "w": 12,
+    "h": 8
+   },
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "grafana-postgresql-datasource",
+      "uid": "bdi-pg"
+     },
+     "format": "time_series",
+     "rawQuery": true,
+     "editorMode": "code",
+     "rawSql": "SELECT minute AS time, source AS metric, quote_volume::float AS value FROM candles WHERE symbol = '$symbol' AND source IN ('stream','official','batch') AND $__timeFilter(minute) ORDER BY 1"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "unit": "currencyUSD",
+     "custom": {
+      "lineWidth": 2
+     }
+    },
+    "overrides": []
+   }
+  },
+  {
+   "id": 12,
+   "type": "timeseries",
+   "title": "Điểm bất thường |mz_score| theo thời gian — $symbol",
+   "datasource": {
+    "type": "grafana-postgresql-datasource",
+    "uid": "bdi-pg"
+   },
+   "gridPos": {
+    "x": 12,
+    "y": 28,
+    "w": 12,
+    "h": 8
+   },
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "grafana-postgresql-datasource",
+      "uid": "bdi-pg"
+     },
+     "format": "time_series",
+     "rawQuery": true,
+     "editorMode": "code",
+     "rawSql": "SELECT minute AS time, metric, abs(mz_score)::float AS value FROM anomalies WHERE symbol = '$symbol' AND $__timeFilter(minute) ORDER BY 1"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "custom": {
+      "lineWidth": 2,
+      "drawStyle": "points",
+      "pointSize": 6
+     }
+    },
+    "overrides": []
+   }
   }
  ],
  "templating": {

@@ -148,11 +148,72 @@ P.append(table("C5 · Chất lượng nguồn", """
 SELECT source AS "Nguồn", completeness_pct AS "Completeness %", consistency_pct AS "Consistency %",
        round(timeliness_p50_s::numeric, 1) AS "Timeliness p50 (s)", round(timeliness_p95_s::numeric, 1) AS "p95 (s)"
 FROM exp_c5""", 16, y, 8, 8)); y += 8
-P.append(table("E7 · Quét tham số", """
+P.append(table("E7 · Quét tham số trên FTX (11/2022)", """
 SELECT "window" AS "W (phút)", threshold AS "|M| >", min_abs_return AS "Sàn", ftx_8 AS "8/11", ftx_9 AS "9/11",
        ftx_rank_8 AS "Hạng 8/11", ftx_rank_9 AS "Hạng 9/11",
        round(per_day_nov22::numeric, 1) AS "/ngày 11/2022", round(per_day_quiet26::numeric, 1) AS "/ngày yên 2026"
-FROM exp_e7_sweep ORDER BY 1, 2, 3""", 0, y, 24, 8))
+FROM exp_e7_sweep ORDER BY 1, 2, 3""", 0, y, 15, 8))
+P.append(table("E7 · Kiểm chứng ngoài mẫu trên LUNA (5/2022, giữ nguyên W=1440, |M|>3.5, sàn 0.5%)", """
+SELECT '2022-05-11' AS "Ngày sự kiện LUNA", "alerts_2022-05-11" AS "Báo động (5 cặp)", "rank_2022-05-11" AS "Hạng trong tháng" FROM exp_e7_luna
+UNION ALL
+SELECT '2022-05-09', "alerts_2022-05-09", "rank_2022-05-09" FROM exp_e7_luna
+UNION ALL
+SELECT '2022-05-12', "alerts_2022-05-12", "rank_2022-05-12" FROM exp_e7_luna
+UNION ALL
+SELECT '2022-05-10', "alerts_2022-05-10", "rank_2022-05-10" FROM exp_e7_luna""", 15, y, 9, 8,
+    desc="4 ngày sự kiện LUNA chiếm trọn Top 1–4 của tháng 5/2022 (56,2% báo động cả tháng)")); y += 8
+
+P.append(bars("E7 · Stress test velocity: Tải đưa vào vs Xử lý tối đa", """
+SELECT speed::int || '×' AS x,
+       round(offered_msg_per_s::numeric, 0) AS "Tải đưa vào",
+       round(max_processed_rows_per_s::numeric, 0) AS "Xử lý tối đa (Spark)"
+FROM exp_e7_stress ORDER BY speed""", 0, y, 12, 8, unit="wps",
+    series={"Tải đưa vào": BLUE, "Xử lý tối đa (Spark)": ORANGE},
+    desc="Đỉnh xử lý 23 766 bản tin/s ở 200× (gấp 1 278 lần lưu lượng live trung bình)"));
+P.append(bars("E7 · Stress test velocity: Độ trễ ghi nến p50 / p95", """
+SELECT speed::int || '×' AS x,
+       round(latency_p50_s::numeric, 2) AS "Độ trễ p50",
+       round(latency_p95_s::numeric, 2) AS "Độ trễ p95"
+FROM exp_e7_stress ORDER BY speed""", 12, y, 12, 8, unit="s",
+    series={"Độ trễ p50": AQUA, "Độ trễ p95": BLUE},
+    desc="Đường cong chữ U: đáy 4,83 s ở 50×, tăng lại khi tải vượt công suất")); y += 8
+
+P.append(table("E7-ML · Đối sánh Thống kê vs Học máy (Train: 05/2022 LUNA -> Test: 11/2022 FTX + 2026)", """
+SELECT model AS "Mô hình", category AS "Nhóm",
+       round(precision::numeric, 3) AS "Precision",
+       round(recall::numeric, 3) AS "Recall",
+       round(f1::numeric, 3) AS "F1-Score",
+       round(roc_auc::numeric, 4) AS "ROC-AUC",
+       round(pr_auc::numeric, 3) AS "PR-AUC",
+       round(quiet_test_per_day::numeric, 2) AS "Báo động/ngày (2026)",
+       round(ftx_event_share_pct::numeric, 1) AS "% Cảnh báo FTX",
+       whipsaw_caught_ftx AS "Bắt Flash Wick (/179)",
+       round(fit_time_s::numeric, 2) AS "Train (s)",
+       round(infer_ms_per_1k::numeric, 3) AS "Infer (ms/1k dòng)"
+FROM exp_e7_ml""", 0, y, 14, 8,
+    desc="Thuận chiều thời gian: học trên quá khứ 05/2022 (LUNA), kiểm thử tương lai 11/2022 (FTX) + 2026-06..08"));
+P.append(bars("E7-ML · F1-Score & PR-AUC trên Tập Test Tương lai (FTX + 2026)", """
+SELECT replace(model, ' (Baseline)', '') AS x,
+       round(f1::numeric, 3) AS "F1-Score",
+       round(pr_auc::numeric, 3) AS "PR-AUC"
+FROM exp_e7_ml""", 14, y, 10, 8,
+    series={"F1-Score": BLUE, "PR-AUC": ORANGE},
+    desc="Random Forest và HistGradientBoosting đạt F1 ~0,58 và PR-AUC ~0,61–0,67 (gấp >3 lần Baseline)")); y += 8
+
+P.append(row("Thống kê mô tả · 5 cặp × 4 tháng (418,2 triệu dòng aggTrades)", y)); y += 1
+P.append(table("Thống kê mô tả · Quy mô giao dịch & khối lượng theo cặp × tháng", """
+SELECT symbol AS "Cặp", month AS "Tháng", n_minutes AS "Số phút",
+       n_agg AS "Dòng aggTrades", n_trades AS "Giao dịch (trades)",
+       round(quote_volume_billion_usdt::numeric, 2) AS "Khối lượng (tỷ USDT)",
+       round(taker_buy_agg_pct::numeric, 2) AS "Mua chủ động %"
+FROM exp_desc ORDER BY 1, 2""", 0, y, 14, 8))
+P.append(bars("Thống kê mô tả · Khối lượng (tỷ USDT): 11/2022 (FTX) vs TB tháng 2026", """
+SELECT symbol AS x,
+       max(CASE WHEN month = '2022-11' THEN quote_volume_billion_usdt END) AS "2022-11 (FTX)",
+       round(avg(CASE WHEN month <> '2022-11' THEN quote_volume_billion_usdt END)::numeric, 2) AS "TB tháng 2026 (yên)"
+FROM exp_desc GROUP BY symbol ORDER BY symbol""", 14, y, 10, 8,
+    series={"2022-11 (FTX)": ORANGE, "TB tháng 2026 (yên)": BLUE},
+    desc="Riêng tháng 11/2022 chiếm 52,4% tổng khối lượng USDT của cả 4 tháng"))
 
 dash = {"uid": "bdi-results", "title": "BDI · Kết quả thí nghiệm", "timezone": "utc", "schemaVersion": 39,
         "time": {"from": "now-6h", "to": "now"}, "refresh": "", "panels": P, "editable": True,

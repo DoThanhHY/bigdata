@@ -34,7 +34,7 @@
 - [x] `python -m bdi.batch.build_batch`: 418M dòng, khoảng 70 phút
 - [x] **E1** (SOL + XRP): [kết quả](experiments/E1-drift-ablation.md) → `results/e1/ablation.csv`. Naive hỏng 100% ở 2026, drift-aware đúng 100%
 - [ ] E1 cho đủ 5 cặp × 4 tháng
-- [ ] E7 kiểm tra lại trên sự kiện khác (LUNA 5/2022) để tránh chọn tham số theo dữ liệu
+- [x] E7 kiểm tra lại trên sự kiện khác (LUNA 5/2022) để tránh chọn tham số theo dữ liệu: 9–12/5/2022 chiếm trọn top 1–4 của tháng (`results/e7/sweep_luna.csv`)
 - [ ] E6 đo lại thời gian trên máy rảnh
 - [x] **E2**: [kết quả](experiments/E2-batch-vs-official.md). **878 400/878 400 nến khớp tuyệt đối**
 - [x] Kiểm tra câu hỏi mở của C3: official của 5 cặp × 4 tháng **không có phút nào `trades = 0`**, và mọi tháng đủ phút. Với các cặp thanh khoản cao này, `EMPTY_MINUTE` không xảy ra (cần ghi rõ phạm vi khi kết luận)
@@ -50,8 +50,8 @@
 - [x] E4 · sự cố tự nhiên (máy ngủ 5,7 giờ): [kết quả](experiments/E4-fault-injection.md). Backfill 260 nghìn bản ghi, 514/514 phút × 5 cặp khớp official
 - [x] **E4** chủ động: [kết quả](experiments/E4-fault-injection.md). 4 kịch bản streaming 0 nến thiếu/thừa/lệch, phục hồi 5,7–25,6 s
 - [x] E4 · idempotent: `chaos.sh batch_rerun` in ra `[ok] idempotent` (175 680 dòng, md5 không đổi)
-- [x] E4 · reconnect chủ động trước mốc 24 giờ: 5 symbol, backfill đủ 58 bản tin, không thiếu nến
-- [x] Grafana live có Candlestick, độ tươi, đối soát nguồn, khoảng trống WS và backfill
+- [x] E4 · reconnect chủ động trước mốc 24 giờ: 5 symbol, backfill đủ 58 bản tin, không thiếu nến (`reason = 'proactive_24h'`)
+- [x] Grafana live và results: đầy đủ panel theo dõi live (Candlestick, độ tươi, đối soát nguồn, khoảng trống WS/backfill) và kết quả thí nghiệm (`bdi_results.json` 27 panel + `bdi.json` 12 panel)
 
 ## Tuần 3: E5 + E6 + E7 (Mảng 3, Mảng 4)
 
@@ -60,16 +60,17 @@
 - [x] **E7** batch: [kết quả](experiments/E7-anomaly-ftx.md). Sau khi sửa phương pháp (W = 1 ngày, log-volume, sàn 0,5%), 8–9/11/2022 là top-2 ngày
 - [x] **E7** replay FTX 100× trên stream: báo động stream trùng batch 111/111; nến khớp official 5 758/5 758
 - [x] E7 throughput sơ bộ: 13,9k–25,5k bản tin/s (khoảng 750–1 370 lần live)
-- [ ] **E7** stress test theo bậc (`e7_stress.sh stress`) trên máy rảnh → `results/e7/stress.png`
-- [ ] Thống kê mô tả (Mảng 4): số dòng, phân bố trades/phút, khối lượng theo cặp × tháng
+- [x] **E7** stress test theo bậc (`e7_stress.sh stress`) trên máy rảnh → `results/e7/stress.csv`, `results/e7/stress.png` (7 bậc `1×`..`1000×`, đỉnh xử lý 23,8k bản tin/s ở `200×`)
+- [x] Thống kê mô tả (Mảng 4): số dòng, phân bố trades/phút, khối lượng theo cặp × tháng (`experiments/descriptive_stats.py` → `results/desc/`)
 
 ## Tuần 4: Tổng hợp + báo cáo + demo
 
 - [x] **C3**: đối soát live ghi nhận 5 `CAPTURE_START`, 0 `UNKNOWN`; E2/E4 không có nến lệch
 - [x] **C5 24 giờ cho Stream/Official:** [kết quả](experiments/C5-source-policy.md). 7.200 nến, 100% hội tụ; TTC p50 = 0,0 giây, p95 = 2,9 giây
-- [ ] C5: nạp Batch hai ngày 07–08/11 sau T+1 và chạy lại phân tích để có bảng đủ ba nguồn
-- [ ] **C6**: mô tả lineage, dẫn chứng bằng `SELECT source, file_checksum, watermark_config, pipeline_version FROM candles LIMIT 5`
-- [x] Đồng bộ kết quả E3/C3/C5 hiện có vào tài liệu; cập nhật lại sau khi có Batch C5
+- [x] C5: nạp Batch hai ngày 07–08/11 sau T+1 và hoàn tất phân tích đối soát đủ ba nguồn
+- [x] **C6**: mô tả lineage, dẫn chứng bằng `SELECT source, file_checksum, watermark_config, pipeline_version FROM candles LIMIT 5`
+- [x] Đồng bộ kết quả E3/C3/C5 đầy đủ vào tài liệu; nạp Batch C5 hoàn tất 100%
+- [x] Video demo dự phòng 90s tại `results/demo/demo_mang2_90s.mp4`
 - [ ] Chốt toàn bộ hình trong `results/` và đưa vào báo cáo/slide
 - [ ] Tập demo theo [04-demo.md](04-demo.md) ít nhất 2 lần
 
