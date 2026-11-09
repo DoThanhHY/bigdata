@@ -182,7 +182,7 @@
 - Hộp "bài học phương pháp":
   - cửa sổ 60 phút → FTX đứng hạng 4 và hạng 29;
   - cửa sổ 1 ngày + sàn 0,5% → hạng **1 và 2**; báo động mùa yên giảm từ 202 xuống 9,3/ngày.
-- **Ghi chú (trung thực):** tham số được chọn trên chính dữ liệu này; sẽ kiểm lại trên LUNA 5/2022.
+- **Kiểm chứng ngoài mẫu (LUNA 5/2022, giữ nguyên tham số):** cả 4 ngày sự kiện (9–12/5/2022) đều chiếm trọn **hạng 1, 2, 3, 4** của tháng (384, 237, 106, 82 báo động; chiếm 56,2% cả tháng).
 - **Thời gian:** 1,5 phút
 
 ## Slide 15 · E7: Replay FTX qua streaming
@@ -247,7 +247,7 @@
 
 1. **"100% khớp có phải do so nhầm cùng một nguồn không?"** Không. Batch dựng từ aggTrades, official là klines, hai file khác nhau do Binance công bố riêng; có `file_checksum` khác nhau trong lineage.
 2. **"Sao phải tiêm độ trễ giả vào E3?"** Vì dữ liệu thật chỉ lệch tối đa 0,78 s, nhỏ hơn một micro-batch. Đó cũng là một kết quả. Phần tiêm độ trễ trả lời câu hỏi "nếu mạng xấu thì sao".
-3. **"Tham số E7 có bị overfit không?"** Có rủi ro, và nhóm đã ghi rõ. Sẽ kiểm lại trên LUNA với tham số giữ nguyên.
+3. **"Tham số E7 có bị overfit không?"** Nhóm đã kiểm chứng độc lập trên sự kiện LUNA (5/2022) với tham số giữ nguyên hoàn toàn (`W=1440`, `|M|>3,5`, sàn `0,5%`): 4 ngày 9–12/5/2022 chiếm trọn top 1–4 của tháng (11/5 hạng 1 với 384 báo động, 9/5 hạng 2 với 237, 12/5 hạng 3 với 106, 10/5 hạng 4 với 82).
 4. **"Exactly-once thật không?"** Không phải exactly-once theo nghĩa giao dịch phân tán. Đây là *hiệu quả tương đương*: producer at-least-once, dedup theo `agg_id` trong watermark, upsert theo khóa. E4 chứng minh bằng 0 nến thừa.
 5. **"Máy 16 GB có đại diện cho big data không?"** Dữ liệu 420M dòng / 39 GB vượt RAM, nên Spark phải xử lý ngoài bộ nhớ. Phần mở rộng cụm nhiều worker nằm ở hướng tiếp.
 

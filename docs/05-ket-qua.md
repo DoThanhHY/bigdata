@@ -16,7 +16,7 @@ Xem trực quan:
 | E4 | Hệ thống chịu lỗi ra sao? | 4 kịch bản chủ động + máy ngủ 5,7 giờ: **0 nến thiếu/thừa/lệch**; phục hồi 5,7–25,6 s | ✅ |
 | E5 | Ghép mờ được không? | Ghép giữ thứ tự: **F1 = 0,995** (P 99,9%, R 99,0%) ở δ = 1 s; blocking giảm số cặp **250–2 750 lần** | ✅ |
 | E6 | Truy vấn xấp xỉ có đáng không? | Đếm phân biệt trên 420M giá trị: **nhanh hơn 12,7 lần, sai 0,76%**; phân vị chính xác hết RAM | ✅ (thời gian đo khi máy tải cao) |
-| E7 | Phát hiện được FTX không? | 8/11 và 9/11/2022 là **top-2 ngày** của tháng; stream trùng batch **111/111** báo động | ✅ (cần kiểm lại trên LUNA) |
+| E7 | Phát hiện được FTX không? | 8/11 và 9/11/2022 là **top-2 ngày** của tháng; kiểm chứng độc lập trên LUNA (9–12/5/2022) chiếm trọn **top 1–4**; stream trùng batch **111/111** báo động | ✅ |
 | C5 | Chọn nguồn thế nào? | Stream đầy đủ 100%, khớp 100%; hội tụ về official sau p50 = **13 s** | ⚠️ sơ bộ (~2 giờ đo) |
 
 ## Quy mô dữ liệu và hệ thống
@@ -174,7 +174,7 @@ Phương pháp: modified z-score (Iglewicz–Hoaglin), |M| > 3,5, baseline 1 ng�
 | Throughput xử lý (lô 500k) | trung vị 13 879 · tối đa 25 454 bản tin/s, khoảng **750–1 370 lần** lưu lượng live |
 | Tải đưa vào tối đa | 26 964 bản tin/s, vượt khả năng xử lý của máy nên job tụt lại |
 
-- Lưu ý trung thực: cửa sổ và sàn được chọn sau khi xem dữ liệu tháng 11/2022, nên cần kiểm lại trên sự kiện khác (LUNA 5/2022).
+- **Kiểm chứng ngoài mẫu trên sự kiện LUNA (5/2022, giữ nguyên W = 1440, |M| > 3,5, sàn 0,5%):** cả 4 ngày sự kiện đều đứng **top 1–4 của tháng 5/2022** — ngày 11/5 hạng **1** (384 báo động), 9/5 hạng **2** (237), 12/5 hạng **3** (106), 10/5 hạng **4** (82); trung bình tháng 46,4 báo động/ngày (`results/e7/sweep_luna.csv`). Riêng 4 ngày này chiếm 56,2% tổng báo động cả tháng, xác nhận tham số không bị overfit vào FTX.
 - Hình: `results/e7/ftx_btc.png`, `results/e7/alerts_per_day_nov22.png`.
 
 ## C5 · Chính sách chọn nguồn (sơ bộ)
@@ -223,6 +223,6 @@ Time-to-convergence: 100% nến hội tụ, p50 = 13,0 s. (*) p95 bị đội l�
 1. E1 mới chạy 2/5 cặp (kết luận khó thay đổi).
 2. E3 đo trên cửa sổ 30 phút (140 nến mỗi cấu hình).
 3. E6 và stress test đo khi máy tải cao (load 20–48), nên con số thời gian chỉ mang tính tương đối.
-4. Tham số E7 được chọn trên chính dữ liệu FTX; chưa kiểm trên sự kiện khác.
+4. E7 không có nhãn chuẩn nên chỉ đánh giá theo sự kiện (FTX 11/2022 và kiểm chứng ngoài mẫu trên LUNA 5/2022) cùng proxy báo động giả ở kỳ yên 2026.
 5. C5 mới đo ~2 giờ.
 6. Mọi thứ chạy trên **một máy** 16 GB (local[*]); chưa thử cụm nhiều worker.

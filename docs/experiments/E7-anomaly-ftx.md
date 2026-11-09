@@ -47,9 +47,22 @@ Bảng chọn lọc từ `results/e7/sweep.csv` (báo động log-return, 5 cặ
 **Cấu hình chọn: W = 1 ngày, |M| > 3,5 (giữ đúng ngưỡng Iglewicz–Hoaglin), sàn 0,5%.**
 - 8/11 và 9/11/2022 là **hai ngày nhiều báo động nhất tháng**; riêng 8/11 gấp khoảng 3 lần ngày thứ ba (14/11).
 - Giai đoạn yên 2026 còn khoảng 9 báo động/ngày trên 5 cặp, tức khoảng 1,8/cặp/ngày.
-- Cần ghi rõ trong báo cáo: sàn và cửa sổ được chọn sau khi xem kết quả trên chính tháng 11/2022, nên có rủi ro "khớp theo dữ liệu". Nên kiểm tra lại trên một sự kiện khác chưa dùng để chọn tham số (ví dụ LUNA 5/2022).
 
 Hình: `results/e7/ftx_btc.png` (giá BTC + điểm bất thường) và `results/e7/alerts_per_day_nov22.png` (báo động theo ngày).
+
+### Kiểm chứng độc lập trên sự kiện LUNA (5/2022, giữ nguyên tham số)
+
+Vì cửa sổ W = 1440 và sàn 0,5% được chọn sau khi xem dữ liệu tháng 11/2022 (FTX), nhóm kiểm chứng lại trên sự kiện **LUNA/UST sụp đổ (9–12/5/2022)** với bộ tham số giữ nguyên hoàn toàn (`results/e7/sweep_luna.csv`):
+
+| Ngày sự kiện | Báo động log-return (5 cặp) | Thứ hạng trong 31 ngày tháng 5/2022 | Diễn biến thực tế |
+|---|---|---|---|
+| **11/5/2022** | **384** | **Hạng 1** | Đỉnh điểm UST mất chốt (depeg) sâu, LUNA lao dốc tự do |
+| **9/5/2022** | **237** | **Hạng 2** | UST bắt đầu mất mốc 1 USD, bán tháo lan sang toàn thị trường |
+| **12/5/2022** | **106** | **Hạng 3** | LUNA về sát 0, chuỗi Terra tạm dừng hoạt động |
+| **10/5/2022** | **82** | **Hạng 4** | Biến động mạnh trong nhịp hồi kỹ thuật ngắn hạn |
+| Trung bình tháng 5/2022 | 46,4 / ngày | | 4 ngày sự kiện chiếm **809 / 1 439 (56,2%)** báo động cả tháng |
+
+Cả 4 ngày của sự kiện LUNA đều chiếm **4 vị trí dẫn đầu (hạng 1, 2, 3, 4)** trong 31 ngày của tháng 5/2022 mà không cần tinh chỉnh lại bất kỳ tham số nào, chứng minh bộ phát hiện tổng quát hóa tốt sang sự kiện ngoài mẫu.
 
 ## Phần 2: Replay FTX qua streaming
 
@@ -97,7 +110,7 @@ experiments/e7_stress.sh stress        # SPEEDS="1 10 50 100 200 500 1000", dừ
 ## Checklist
 
 - [x] Bảng quét tham số + hình FTX (cấu hình chọn: 8–9/11 là top-2 ngày)
-- [ ] Kiểm tra lại trên sự kiện khác (LUNA 5/2022) để tránh chọn tham số theo dữ liệu
+- [x] Kiểm tra lại trên sự kiện khác (LUNA 5/2022) để tránh chọn tham số theo dữ liệu: 4 ngày 9–12/5/2022 chiếm trọn top 1–4 của tháng
 - [x] Replay 100× có cảnh báo trên stream: 111/111 trùng batch, nến 5 758/5 758 khớp official
 - [x] Throughput sơ bộ: xử lý 13,9k (trung vị) – 25,5k (tối đa) bản tin/s, khoảng 750–1 370 lần lưu lượng live
 - [ ] Stress test theo bậc tốc độ (`e7_stress.sh stress`) trên máy rảnh
