@@ -51,7 +51,7 @@
 - [x] **E4** chủ động: [kết quả](experiments/E4-fault-injection.md). 4 kịch bản streaming 0 nến thiếu/thừa/lệch, phục hồi 5,7–25,6 s
 - [x] E4 · idempotent: `chaos.sh batch_rerun` in ra `[ok] idempotent` (175 680 dòng, md5 không đổi)
 - [ ] E4 · ngắt tự nhiên sau 24h: bảng `ws_gaps` có dòng với `reason` tương ứng
-- [ ] Grafana bản đầu: thêm panel theo ý nhóm, rồi export JSON vào `grafana/dashboards/`
+- [x] Grafana bản đầu: thêm panel theo ý nhóm, rồi export JSON vào `grafana/dashboards/` (`bdi_results.json` 27 panel + `bdi.json` 12 panel)
 
 ## Tuần 3: E5 + E6 + E7 (Mảng 3, Mảng 4)
 

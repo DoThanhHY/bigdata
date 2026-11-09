@@ -918,7 +918,7 @@
   {
    "id": 21,
    "type": "table",
-   "title": "E7 · Quét tham số",
+   "title": "E7 · Quét tham số trên FTX (11/2022)",
    "description": "",
    "datasource": {
     "type": "grafana-postgresql-datasource",
@@ -927,7 +927,7 @@
    "gridPos": {
     "x": 0,
     "y": 49,
-    "w": 24,
+    "w": 15,
     "h": 8
    },
    "targets": [
@@ -950,6 +950,353 @@
    "fieldConfig": {
     "defaults": {},
     "overrides": []
+   }
+  },
+  {
+   "id": 22,
+   "type": "table",
+   "title": "E7 · Kiểm chứng ngoài mẫu trên LUNA (5/2022, giữ nguyên W=1440, |M|>3.5, sàn 0.5%)",
+   "description": "4 ngày sự kiện LUNA chiếm trọn Top 1–4 của tháng 5/2022 (56,2% báo động cả tháng)",
+   "datasource": {
+    "type": "grafana-postgresql-datasource",
+    "uid": "bdi-pg"
+   },
+   "gridPos": {
+    "x": 15,
+    "y": 49,
+    "w": 9,
+    "h": 8
+   },
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "grafana-postgresql-datasource",
+      "uid": "bdi-pg"
+     },
+     "format": "table",
+     "rawQuery": true,
+     "editorMode": "code",
+     "rawSql": "\nSELECT '2022-05-11' AS \"Ngày sự kiện LUNA\", \"alerts_2022-05-11\" AS \"Báo động (5 cặp)\", \"rank_2022-05-11\" AS \"Hạng trong tháng\" FROM exp_e7_luna\nUNION ALL\nSELECT '2022-05-09', \"alerts_2022-05-09\", \"rank_2022-05-09\" FROM exp_e7_luna\nUNION ALL\nSELECT '2022-05-12', \"alerts_2022-05-12\", \"rank_2022-05-12\" FROM exp_e7_luna\nUNION ALL\nSELECT '2022-05-10', \"alerts_2022-05-10\", \"rank_2022-05-10\" FROM exp_e7_luna"
+    }
+   ],
+   "options": {
+    "showHeader": true,
+    "cellHeight": "sm"
+   },
+   "fieldConfig": {
+    "defaults": {},
+    "overrides": []
+   }
+  },
+  {
+   "id": 23,
+   "type": "barchart",
+   "title": "E7 · Stress test velocity: Tải đưa vào vs Xử lý tối đa",
+   "description": "Đỉnh xử lý 23 766 bản tin/s ở 200× (gấp 1 278 lần lưu lượng live trung bình)",
+   "datasource": {
+    "type": "grafana-postgresql-datasource",
+    "uid": "bdi-pg"
+   },
+   "gridPos": {
+    "x": 0,
+    "y": 57,
+    "w": 12,
+    "h": 8
+   },
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "grafana-postgresql-datasource",
+      "uid": "bdi-pg"
+     },
+     "format": "table",
+     "rawQuery": true,
+     "editorMode": "code",
+     "rawSql": "\nSELECT speed::int || '×' AS x,\n       round(offered_msg_per_s::numeric, 0) AS \"Tải đưa vào\",\n       round(max_processed_rows_per_s::numeric, 0) AS \"Xử lý tối đa (Spark)\"\nFROM exp_e7_stress ORDER BY speed"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "unit": "wps",
+     "custom": {
+      "fillOpacity": 90,
+      "lineWidth": 0
+     }
+    },
+    "overrides": [
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "Tải đưa vào"
+      },
+      "properties": [
+       {
+        "id": "color",
+        "value": {
+         "mode": "fixed",
+         "fixedColor": "#2a78d6"
+        }
+       }
+      ]
+     },
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "Xử lý tối đa (Spark)"
+      },
+      "properties": [
+       {
+        "id": "color",
+        "value": {
+         "mode": "fixed",
+         "fixedColor": "#eb6834"
+        }
+       }
+      ]
+     }
+    ]
+   },
+   "options": {
+    "xField": "x",
+    "orientation": "vertical",
+    "showValue": "auto",
+    "stacking": "none",
+    "groupWidth": 0.7,
+    "barWidth": 0.9,
+    "xTickLabelRotation": 0,
+    "legend": {
+     "showLegend": true,
+     "displayMode": "list",
+     "placement": "bottom"
+    },
+    "tooltip": {
+     "mode": "multi"
+    }
+   }
+  },
+  {
+   "id": 24,
+   "type": "barchart",
+   "title": "E7 · Stress test velocity: Độ trễ ghi nến p50 / p95",
+   "description": "Đường cong chữ U: đáy 4,83 s ở 50×, tăng lại khi tải vượt công suất",
+   "datasource": {
+    "type": "grafana-postgresql-datasource",
+    "uid": "bdi-pg"
+   },
+   "gridPos": {
+    "x": 12,
+    "y": 57,
+    "w": 12,
+    "h": 8
+   },
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "grafana-postgresql-datasource",
+      "uid": "bdi-pg"
+     },
+     "format": "table",
+     "rawQuery": true,
+     "editorMode": "code",
+     "rawSql": "\nSELECT speed::int || '×' AS x,\n       round(latency_p50_s::numeric, 2) AS \"Độ trễ p50\",\n       round(latency_p95_s::numeric, 2) AS \"Độ trễ p95\"\nFROM exp_e7_stress ORDER BY speed"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "unit": "s",
+     "custom": {
+      "fillOpacity": 90,
+      "lineWidth": 0
+     }
+    },
+    "overrides": [
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "Độ trễ p50"
+      },
+      "properties": [
+       {
+        "id": "color",
+        "value": {
+         "mode": "fixed",
+         "fixedColor": "#1baf7a"
+        }
+       }
+      ]
+     },
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "Độ trễ p95"
+      },
+      "properties": [
+       {
+        "id": "color",
+        "value": {
+         "mode": "fixed",
+         "fixedColor": "#2a78d6"
+        }
+       }
+      ]
+     }
+    ]
+   },
+   "options": {
+    "xField": "x",
+    "orientation": "vertical",
+    "showValue": "auto",
+    "stacking": "none",
+    "groupWidth": 0.7,
+    "barWidth": 0.9,
+    "xTickLabelRotation": 0,
+    "legend": {
+     "showLegend": true,
+     "displayMode": "list",
+     "placement": "bottom"
+    },
+    "tooltip": {
+     "mode": "multi"
+    }
+   }
+  },
+  {
+   "id": 25,
+   "type": "row",
+   "title": "Thống kê mô tả · 5 cặp × 4 tháng (418,2 triệu dòng aggTrades)",
+   "collapsed": false,
+   "gridPos": {
+    "x": 0,
+    "y": 65,
+    "w": 24,
+    "h": 1
+   }
+  },
+  {
+   "id": 26,
+   "type": "table",
+   "title": "Thống kê mô tả · Quy mô giao dịch & khối lượng theo cặp × tháng",
+   "description": "",
+   "datasource": {
+    "type": "grafana-postgresql-datasource",
+    "uid": "bdi-pg"
+   },
+   "gridPos": {
+    "x": 0,
+    "y": 66,
+    "w": 14,
+    "h": 8
+   },
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "grafana-postgresql-datasource",
+      "uid": "bdi-pg"
+     },
+     "format": "table",
+     "rawQuery": true,
+     "editorMode": "code",
+     "rawSql": "\nSELECT symbol AS \"Cặp\", month AS \"Tháng\", n_minutes AS \"Số phút\",\n       n_agg AS \"Dòng aggTrades\", n_trades AS \"Giao dịch (trades)\",\n       round(quote_volume_billion_usdt::numeric, 2) AS \"Khối lượng (tỷ USDT)\",\n       round(taker_buy_agg_pct::numeric, 2) AS \"Mua chủ động %\"\nFROM exp_desc ORDER BY 1, 2"
+    }
+   ],
+   "options": {
+    "showHeader": true,
+    "cellHeight": "sm"
+   },
+   "fieldConfig": {
+    "defaults": {},
+    "overrides": []
+   }
+  },
+  {
+   "id": 27,
+   "type": "barchart",
+   "title": "Thống kê mô tả · Khối lượng (tỷ USDT): 11/2022 (FTX) vs TB tháng 2026",
+   "description": "Riêng tháng 11/2022 chiếm 52,4% tổng khối lượng USDT của cả 4 tháng",
+   "datasource": {
+    "type": "grafana-postgresql-datasource",
+    "uid": "bdi-pg"
+   },
+   "gridPos": {
+    "x": 14,
+    "y": 66,
+    "w": 10,
+    "h": 8
+   },
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "grafana-postgresql-datasource",
+      "uid": "bdi-pg"
+     },
+     "format": "table",
+     "rawQuery": true,
+     "editorMode": "code",
+     "rawSql": "\nSELECT symbol AS x,\n       max(CASE WHEN month = '2022-11' THEN quote_volume_billion_usdt END) AS \"2022-11 (FTX)\",\n       round(avg(CASE WHEN month <> '2022-11' THEN quote_volume_billion_usdt END)::numeric, 2) AS \"TB tháng 2026 (yên)\"\nFROM exp_desc GROUP BY symbol ORDER BY symbol"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "unit": "none",
+     "custom": {
+      "fillOpacity": 90,
+      "lineWidth": 0
+     }
+    },
+    "overrides": [
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "2022-11 (FTX)"
+      },
+      "properties": [
+       {
+        "id": "color",
+        "value": {
+         "mode": "fixed",
+         "fixedColor": "#eb6834"
+        }
+       }
+      ]
+     },
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "TB tháng 2026 (yên)"
+      },
+      "properties": [
+       {
+        "id": "color",
+        "value": {
+         "mode": "fixed",
+         "fixedColor": "#2a78d6"
+        }
+       }
+      ]
+     }
+    ]
+   },
+   "options": {
+    "xField": "x",
+    "orientation": "vertical",
+    "showValue": "auto",
+    "stacking": "none",
+    "groupWidth": 0.7,
+    "barWidth": 0.9,
+    "xTickLabelRotation": 0,
+    "legend": {
+     "showLegend": true,
+     "displayMode": "list",
+     "placement": "bottom"
+    },
+    "tooltip": {
+     "mode": "multi"
+    }
    }
   }
  ],
