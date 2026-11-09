@@ -204,7 +204,7 @@
 - Bảng quyết định 5 dòng (lấy từ 05-ket-qua.md, mục C5)
 - Hình nhỏ: `results/c5/ttc_cdf.png` (100% nến hội tụ; TTC p50 = 0,0 s, p95 = 2,9 s)
 - 3 tiêu chí: completeness · timeliness · consistency
-- Chú thích: C5 đã đủ 24 giờ cho Stream/Official; Batch cùng cửa sổ được bổ sung sau T+1.
+- Chú thích: C5 đã hoàn tất đủ 24 giờ cho cả 3 nguồn (`stream`, `stream:update`, `batch`) đối soát với `official`.
 - **Thời gian:** 1 phút
 
 ## Slide 17 · Bài học kỹ thuật
@@ -226,7 +226,7 @@
   - chạy trên 1 máy 16 GB;
   - E3 cửa sổ 2 giờ nhưng validator hiệu năng chưa đạt;
   - E7 chưa kiểm trên sự kiện khác;
-  - C5 đã đo 24 giờ cho Stream/Official nhưng còn thiếu Batch cùng cửa sổ;
+  - C5 chạy trên một máy (chưa kiểm chứng cụm nhiều worker);
 - **Hướng tiếp:**
   - cụm nhiều worker;
   - thêm sự kiện LUNA;
@@ -259,4 +259,4 @@
 - [ ] Vẽ sơ đồ kiến trúc (slide 4)
 - [ ] Tạo biểu đồ cột E1 từ `results/e1/ablation.csv` (slide 6), hoặc dùng bảng
 - [ ] Quay video demo dự phòng 60 s (slide 11)
-- [ ] Bổ sung dòng Batch vào C5 sau T+1; cập nhật nếu chạy thêm E1 đủ 5 cặp hoặc E7 trên LUNA
+- [x] Bổ sung dòng Batch vào C5 sau T+1; cập nhật nếu chạy thêm E1 đủ 5 cặp hoặc E7 trên LUNA

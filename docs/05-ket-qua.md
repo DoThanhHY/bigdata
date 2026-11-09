@@ -173,17 +173,17 @@ Phương pháp: modified z-score (Iglewicz–Hoaglin), |M| > 3,5, baseline 1 ng�
 
 ## C5 · Chính sách chọn nguồn
 
-Cửa sổ `[2026-11-07T11:34:00Z, 2026-11-08T11:34:00Z)`, 5 cặp × 1.440 phút = 7.200 nến cho mỗi nguồn hiện có và 100.826 phiên bản `stream:update`:
+Cửa sổ `[2026-11-07T11:34:00Z, 2026-11-08T11:34:00Z)`, 5 cặp × 1.440 phút = 7.200 nến cho mỗi nguồn (`stream`, `stream:update`, `batch`, `official`) và 100.826 phiên bản `stream:update`:
 
 | Nguồn | Completeness | Consistency | Timeliness p50 | p95 |
 |---|---|---|---|---|
 | `stream` (append, W = 5 s) | 100% | 100% | 11,36 s | 16,73 s |
 | `stream:update` (update, W = 30 s) | 100% | 100% | 0,00 s | 2,22 s |
-| `official` | 100% | 100% | 486,11 s | 486,87 s |
+| `batch` (T+1) | 100% | 100% | 131.534,24 s (~36,54 h) | 170.391,81 s (~47,33 h) |
 
-`official` được REST poller ghi theo chu kỳ đối soát, nên timeliness của nó không đại diện cho kênh thời gian thực. Time-to-convergence của `stream:update`: 100% nến hội tụ; 64,44% có TTC = 0; p50 = 0,0 giây, p95 = 2,9 giây, p99 = 4,8 giây, lớn nhất 8,2 giây. TTC được chặn dưới tại 0 vì định nghĩa bắt đầu từ mốc hết phút.
+Timeliness của `batch` phản ánh thời điểm chạy job nạp Batch T+1 so với cuối mỗi phút, không diễn giải như độ trễ thời gian thực. Time-to-convergence của `stream:update`: 100% nến hội tụ; 64,44% có TTC = 0; p50 = 0,0 giây, p95 = 2,9 giây, p99 = 4,8 giây, lớn nhất 8,2 giây. TTC được chặn dưới tại 0 vì định nghĩa bắt đầu từ mốc hết phút.
 
-Kết quả trên đã chốt cho Stream/Official. Batch của ngày 08/11 chỉ có sau T+1; cần nạp hai ngày 07–08/11 và chạy lại đúng cửa sổ trước khi gọi đây là bảng ba nguồn hoàn chỉnh.
+Kết quả trên đã chốt hoàn chỉnh cho cả ba nguồn (`stream`, `stream:update`, `batch`) đối soát với `official` trên cùng cửa sổ 24 giờ.
 
 | Nhu cầu | Nguồn | Căn cứ |
 |---|---|---|
@@ -220,5 +220,5 @@ Kết quả trên đã chốt cho Stream/Official. Batch của ngày 08/11 chỉ
 2. E3 dùng cửa sổ 2 giờ trên một VM Azure; validator hiệu năng chưa đạt vì micro-batch p95 vượt trigger 6–12%.
 3. E6 và stress test đo khi máy tải cao (load 20–48), nên con số thời gian chỉ mang tính tương đối.
 4. Tham số E7 được chọn trên chính dữ liệu FTX; chưa kiểm trên sự kiện khác.
-5. C5 đã đo 24 giờ cho Stream/Official nhưng chưa có Batch cùng cửa sổ; mọi job chạy trên một máy nên chưa đại diện cho cụm production.
+5. C5 đã đo trọn vẹn 24 giờ cho cả ba nguồn (`stream`, `stream:update`, `batch` đối soát với `official`), nhưng mọi job chạy trên một máy nên chưa đại diện cho cụm production.
 6. Mọi thứ chạy trên **một máy** 16 GB (local[*]); chưa thử cụm nhiều worker.

@@ -129,13 +129,14 @@ Nhóm định nghĩa **Time-to-Convergence (TTC)** là khoảng thời gian tín
 ### 4.2. Số liệu đo đạc thực tế
 Đo trên cửa sổ ổn định 24 giờ `2026-11-07T11:34:00Z`–`2026-11-08T11:34:00Z`, gồm 7.200 nến của 5 symbol và 100.826 phiên bản trong `candle_versions`:
 
-- **Độ phủ:** `stream`, `stream:update` và `official` đều có đủ 7.200/7.200 nến.
+- **Độ phủ:** `stream`, `stream:update`, `batch` và `official` đều có đủ 7.200/7.200 nến (100% completeness, 100% consistency).
 - **Tỷ lệ hội tụ:** **100% nến `stream:update` hội tụ về nến Official**.
 - **TTC:** 64,44% nến đã ổn định tại mốc hết phút; $p50 = 0,0\text{ giây}$, $p95 = 2,9\text{ giây}$, $p99 = 4,8\text{ giây}$ và lớn nhất 8,2 giây. TTC bằng 0 nghĩa là giá trị cuối cùng đã ổn định trước hoặc đúng mốc hết phút; phép đo được chặn dưới tại 0 giây.
-- **Luồng append chính:** completeness 100%, consistency 100%, timeliness $p50 = 11,36\text{ giây}$ và $p95 = 16,73\text{ giây}$.
+- **Luồng append chính (`stream`):** completeness 100%, consistency 100%, timeliness $p50 = 11,36\text{ giây}$ và $p95 = 16,73\text{ giây}$.
+- **Tầng Batch (`batch`, nạp sau T+1):** completeness 100%, consistency 100% (7.200/7.200 nến trong cửa sổ 24h và 14.400/14.400 nến trên toàn bộ hai ngày 07–08/11 khớp tuyệt đối với Official); timeliness $p50 = 131.534,24\text{ s}$ (~36,54 giờ) và $p95 = 170.391,81\text{ s}$ (~47,33 giờ) phản ánh thời điểm chạy batch T+1 so với lúc đóng phút, không dùng để diễn giải như độ trễ thời gian thực.
 - **Sự kiện trong cửa sổ:** một lần reconnect chủ động lúc `2026-11-08T11:08:13Z`, kéo dài khoảng 2 giây và backfill đủ 58 bản tin; không thiếu nến sau đối soát.
 
-Các số trên là kết quả 24 giờ của Stream/Official. Cột Batch sẽ được bổ sung sau khi archive ngày 08/11 được Binance phát hành T+1; không dùng thời điểm nạp Batch để suy diễn độ trễ thời gian thực.
+Kết quả đã hoàn tất đầy đủ cho cả ba nguồn (`stream`, `stream:update`, `batch`) đối soát với `official` trên cùng cửa sổ 24 giờ.
 
 ### 4.3. Bảng quy tắc chọn nguồn tổng hợp (Ma trận quyết định)
 
@@ -150,7 +151,7 @@ Các số trên là kết quả 24 giờ của Stream/Official. Cột Batch sẽ
 ### 4.4. Giới hạn của kết quả
 
 - E3 dùng một cửa sổ 2 giờ trên VM Azure 4 vCPU/16 GiB; validator hiệu năng ghi `[invalid]` vì micro-batch p95 vượt trigger 2 giây khoảng 6–12%. Kết quả vẫn dùng để phân tích trade-off, không dùng để tuyên bố cấu hình đã đạt cổng hiệu năng.
-- C5 chạy trên một máy và đã hoàn chỉnh cho Stream/Official trong 24 giờ; Batch cùng cửa sổ chỉ được bổ sung sau khi archive T+1 xuất hiện.
+- C5 đã hoàn chỉnh cho cả 3 nguồn (`stream`, `stream:update`, `batch`) đối soát với `official` trong 24 giờ, nhưng toàn bộ tiến trình chạy trên một máy đơn lẻ.
 - Các kết quả chưa được kiểm chứng trên cụm Spark nhiều worker, nhiều partition Kafka hoặc tải production lớn hơn.
 - Một reconnect chủ động khoảng 2 giây nằm trong cửa sổ C5 và đã được giữ nguyên trong kết quả toàn kỳ; không loại mẫu để làm đẹp số liệu.
 

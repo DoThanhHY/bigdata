@@ -27,24 +27,24 @@ python experiments/c5_source_policy.py `
 
 ## Đầu ra
 
-- `results/c5/source_quality.csv`: bảng completeness/consistency/timeliness; hiện có `stream`, `stream:update`, `official`, sau T+1 sẽ thay bằng lượt phân tích có thêm `batch`
+- `results/c5/source_quality.csv`: bảng completeness/consistency/timeliness của ba nguồn `stream`, `stream:update`, `batch` (so với chuẩn `official`)
 - `results/c5/ttc_cdf.png`: CDF của TTC
 
 ## Kết quả 24 giờ (07–08/11/2026, 11:34–11:34 UTC, 5 cặp)
 
-Cửa sổ có đúng 7.200 nến cho mỗi nguồn hiện có và 100.826 phiên bản `stream:update`. Một reconnect chủ động diễn ra lúc 11:08:13 UTC ngày 08/11, kéo dài khoảng 2 giây và backfill đủ 58 bản tin.
+Cửa sổ có đúng 7.200 nến cho mỗi nguồn (`stream`, `stream:update`, `batch`, `official`) và 100.826 phiên bản `stream:update`. Một reconnect chủ động diễn ra lúc 11:08:13 UTC ngày 08/11, kéo dài khoảng 2 giây và backfill đủ 58 bản tin.
 
 | Nguồn | Completeness | Consistency | Timeliness p50 | Timeliness p95 |
 |---|---|---|---|---|
 | `stream` (append, W = 5 s) | 100% | 100% | 11,36 s | 16,73 s |
 | `stream:update` (update, W = 30 s) | 100% | 100% | 0,00 s | 2,22 s |
-| `official` (REST poller) | 100% | 100% | 486,11 s | 486,87 s |
+| `batch` (T+1) | 100% | 100% | 131.534,24 s (~36,54 h) | 170.391,81 s (~47,33 h) |
 
-Timeliness của `official` phản ánh chu kỳ REST poller dùng để đối soát, không phải SLA của một kênh giao dịch thời gian thực.
+Timeliness của `batch` phản ánh thời điểm chạy job nạp Batch T+1 so với mốc đóng phút, không dùng để diễn giải như độ trễ thời gian thực.
 
 Time-to-convergence (`stream:update`): **100% nến hội tụ**; 64,44% có TTC = 0; p50 = 0,0 s, p95 = 2,9 s, p99 = 4,8 s và lớn nhất 8,2 s (`results/c5/ttc_cdf.png`). TTC được chặn dưới tại 0 giây: nến đã ổn định trước hoặc đúng mốc hết phút được tính là hội tụ tại mốc hết phút, không biểu diễn bằng thời gian âm.
 
-Kết quả hiện đã chốt cho Stream/Official. Batch của ngày 08/11 chỉ có sau T+1 nên chưa có cột Batch; khi archive xuất hiện cần nạp hai ngày 07–08/11 và chạy lại cùng cửa sổ trước khi gọi đây là bảng ba nguồn hoàn chỉnh.
+Kết quả đã chốt trọn vẹn cho cả ba nguồn (`stream`, `stream:update`, `batch`) đối soát với `official` trên cùng cửa sổ 24 giờ.
 
 ## Quy tắc chọn nguồn
 

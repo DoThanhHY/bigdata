@@ -20,5 +20,7 @@ results/**/*.log
 results/**/progress/
 results/progress/
 results/reconcile/*_mismatches.csv.gz
+results/demo/*.webm
+results/demo/raw_video/
 .env
 .DS_Store

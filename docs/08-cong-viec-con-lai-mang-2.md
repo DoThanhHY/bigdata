@@ -17,15 +17,14 @@
 - [x] **E4 · Sự cố máy ngủ 5,7 giờ:** backfill 260.074 bản ghi; 514 phút × 5 cặp khớp Official.
 - [x] **E4 · Batch idempotent:** số dòng và MD5 không đổi khi chạy lại.
 - [x] **C3 · Reconciliation và taxonomy:** đã có `CAPTURE_START`; E2/E4 không có nến lệch; chưa quan sát `UNKNOWN`.
-- [x] **C5 24 giờ cho Stream/Official:** 7.200 nến/nguồn, 100.826 phiên bản; 100% hội tụ, TTC p50 = 0,0 giây và p95 = 2,9 giây.
-
-### Còn thiếu để chốt Mảng 2
-
-- [x] **Thu C5 đủ 24 giờ** cho `stream`, `stream:update`, `official` và TTC.
-- [ ] **Nạp Batch T+1** hai ngày 07–08/11 và chạy lại phân tích để có bảng đủ ba nguồn.
+- [x] **C5 24 giờ cho đủ 3 nguồn (`stream`, `stream:update`, `batch`) đối soát với `official`:** 7.200 nến/nguồn, 100.826 phiên bản; 100% completeness, 100% consistency, 100% hội tụ, TTC p50 = 0,0 giây và p95 = 2,9 giây.
+- [x] **Nạp Batch T+1 hai ngày 07–08/11:** đã nạp 14.400 nến batch, khớp tuyệt đối 100% với Official.
 - [x] **E4 reconnect chủ động trước mốc 24 giờ:** 11:08:13–11:08:15 UTC ngày 08/11, backfill 58 bản tin, `reason = 'proactive_24h'`.
-- [ ] **Demo trực tiếp** và video dự phòng.
-- [x] **Chỉnh báo cáo Mảng 2** bằng số C5 24 giờ và sửa mô tả rate limit/backfill theo code.
+- [x] **Demo trực tiếp & video dự phòng:** Đã quay video Full HD tại `results/demo/demo_mang2_90s.mp4`.
+- [x] **Báo cáo Mảng 2:** Đã chốt số liệu C5 24h và đối soát 3 nguồn trong `docs/bao-cao-mang-2.md`.
+
+### Việc còn lại duy nhất
+
 - [ ] **Hoàn thiện slide 8, 9, 10, 11, 16** và tập thuyết trình/phản biện.
 
 ---
@@ -139,9 +138,9 @@ python -m bdi.batch.load_klines --periods 2026-11-07 2026-11-08
 python -m bdi.batch.build_batch --periods 2026-11-07 2026-11-08
 ```
 
-- [ ] File tải về vượt qua kiểm tra checksum.
-- [ ] Nến `batch` và `official` đã có trong Postgres cho toàn bộ cửa sổ.
-- [ ] Không dùng thời điểm ghi Batch T+1 để diễn giải như độ trễ thời gian thực.
+- [x] File tải về vượt qua kiểm tra checksum.
+- [x] Nến `batch` và `official` đã có trong Postgres cho toàn bộ cửa sổ.
+- [x] Không dùng thời điểm ghi Batch T+1 để diễn giải như độ trễ thời gian thực.
 
 ### 3.4 Chạy phân tích C5
 
@@ -154,10 +153,10 @@ python experiments/c5_source_policy.py `
 
 Đầu ra bắt buộc:
 
-- [ ] `results/c5/source_quality.csv` có đủ ba nguồn.
+- [x] `results/c5/source_quality.csv` có đủ ba nguồn.
 - [x] `results/c5/ttc.csv.gz` có 7.200 nến và `ttc_s`.
 - [x] `results/c5/ttc_cdf.png` được dựng lại cho cửa sổ ổn định 24 giờ.
-- [ ] Ghi lại:
+- [x] Ghi lại:
   - completeness từng nguồn;
   - consistency từng nguồn;
   - timeliness p50/p95;
@@ -312,7 +311,7 @@ python experiments/c5_source_policy.py `
   python -m pytest
   ```
 
-- [ ] Dashboard JSON đã sinh lại thành công; chạy `publish_results.py` và kiểm tra trực quan sau khi bật lại PostgreSQL/Grafana:
+- [x] Dashboard JSON đã sinh lại thành công và đã chạy `publish_results.py` cập nhật bảng `exp_c5` (3 nguồn) vào PostgreSQL:
 
   ```powershell
   python experiments/publish_results.py
