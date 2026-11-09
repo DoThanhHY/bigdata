@@ -14,15 +14,16 @@ mkdir -p results/e7/logs
 
 run_one() {  # $1 speed, $2 start, $3 end, $4 extra flags cho stream job, $5 tiền tố run_id
   local id="${5:-e7_x}$1"
-  rm -rf "data/checkpoints/stream_candles_$id"
+  rm -rf "data/checkpoints/stream_candles_$id" "results/progress/$id.jsonl"
   python -m bdi.stream.stream_candles --topic binance.aggtrades.replay --watermark 5 \
     --source "stream:$id" --run-id "$id" --starting-offsets latest $4 \
     > "results/e7/logs/$id.log" 2>&1 &
   local pid=$!
-  sleep 60
+  sleep 30
   python -m bdi.ingest.replay --from-csv "$CSV" --symbol BTCUSDT --speed "$1" \
     --start "$2" --end "$3" --run-id "$id"
-  sleep 60; kill "$pid" || true
+  sleep 30; kill "$pid" || true
+  wait "$pid" 2>/dev/null || true
   python experiments/e7_stress_analyze.py --run-id "$id"
 }
 
@@ -35,7 +36,7 @@ case "${1:?ftx|stress}" in
       run_one "$s" 2022-11-09T14:00 2022-11-09T14:20 ""
       p95=$(python -c "import json;print(json.load(open('results/e7/stress_e7_x$s.json'))['latency_p95_s'])")
       echo "[stress] speed=${s}x p95=${p95}s"
-      if python -c "import sys; sys.exit(0 if float('$p95') > 10 else 1)"; then
+      if python -c "import sys; sys.exit(0 if int('$s') >= 200 and float('$p95') > 10 else 1)"; then
         echo "[stress] vượt 10s ở ${s}x — dừng"; break
       fi
     done

@@ -101,11 +101,24 @@ Pipeline xử lý được khoảng **750–1 370 lần** lưu lượng live tru
 ## Phần 3: Stress test velocity
 
 ```bash
-experiments/e7_stress.sh stress        # SPEEDS="1 10 50 100 200 500 1000", dừng khi p95 > 10s
+experiments/e7_stress.sh stress        # SPEEDS="1 10 50 100 200 500 1000"
 ```
 
-- `results/e7/stress.csv` + `stress.png`: tải đưa vào, throughput xử lý tối đa, độ trễ p95 theo tốc độ
-- Ghi lại **throughput tối đa (bản tin/giây)** và so với lưu lượng live trung bình (đọc từ `results/progress/live.jsonl`). Đây là con số chứng minh chữ V velocity.
+Phát lại cùng cửa sổ 20 phút sôi động nhất của sự kiện FTX (`BTCUSDT`, `2022-11-09 14:00–14:20` UTC, **140 423 bản tin `aggTrades`**) ở 7 bậc tốc độ từ `1×` đến `1 000×` (`results/e7/stress.csv`, `results/e7/stress.png`):
+
+| Tốc độ (`×`) | Bản tin | Tải đưa vào (bản tin/s) | Xử lý tối đa của Spark (bản tin/s) | Độ trễ p50 (s) | Độ trễ p95 (s) |
+|---|---|---|---|---|---|
+| 1× | 140 423 | 116,9 | 4 704 | 8,73 | 9,86 |
+| 10× | 140 423 | 1 157,5 | 14 589 | 4,82 | 5,09 |
+| 50× | 140 423 | 5 555,3 | 15 606 | 3,90 | **4,83** |
+| 100× | 140 423 | 10 598,9 | 22 000 | 4,46 | 5,51 |
+| **200×** | 140 423 | **18 817,4** | **23 766** | 6,54 | 7,75 |
+| 500× | 140 423 | 35 971,9 | 14 848 | 8,60 | 9,32 |
+| 1 000× | 140 423 | 47 532,1 | 12 087 | 9,08 | 9,32 |
+
+Diễn giải:
+1. **Điểm cắt công suất (saturation point):** Từ `1×` đến `200×`, tốc độ xử lý tối đa của Spark luôn cao hơn tải đưa vào và đạt đỉnh **23 766 bản tin/s** ở `200×` (gấp **1 278 lần** lưu lượng live trung bình 18,6 bản tin/s). Từ `500×` trở lên (`36k–47,5k` bản tin/s), tải đưa vào vượt ngưỡng xử lý của 4 luồng Spark nên micro-batch bị dồn ứ.
+2. **Đường cong độ trễ hình chữ U:** Ở `1×`, độ trễ p95 là `9,86 s` do phải chờ `5 s` thời gian thực cho watermark vượt qua cuối phút cộng với 2 chu kỳ trigger (`2 s`). Khi tăng lên `10×` và `50×`, thời gian chờ watermark theo đồng hồ thật co lại (`5 / k` giây) trong khi Spark vẫn dư công suất nên độ trễ p95 giảm xuống đáy **4,83 s**. Từ `100×` đến `1 000×`, độ trễ tăng ngược trở lại lên `9,32 s` do chi phí xử lý lô lớn.
 
 ## Checklist
 
@@ -113,5 +126,5 @@ experiments/e7_stress.sh stress        # SPEEDS="1 10 50 100 200 500 1000", dừ
 - [x] Kiểm tra lại trên sự kiện khác (LUNA 5/2022) để tránh chọn tham số theo dữ liệu: 4 ngày 9–12/5/2022 chiếm trọn top 1–4 của tháng
 - [x] Replay 100× có cảnh báo trên stream: 111/111 trùng batch, nến 5 758/5 758 khớp official
 - [x] Throughput sơ bộ: xử lý 13,9k (trung vị) – 25,5k (tối đa) bản tin/s, khoảng 750–1 370 lần lưu lượng live
-- [ ] Stress test theo bậc tốc độ (`e7_stress.sh stress`) trên máy rảnh
+- [x] Stress test theo bậc tốc độ (`1×` → `1 000×`, `e7_stress.sh stress`) → `results/e7/stress.csv`, `results/e7/stress.png`
 - [ ] (nếu còn thời gian) Replay 1× cho 1 giờ quanh đỉnh 9/11

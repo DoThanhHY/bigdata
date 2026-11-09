@@ -1,0 +1,9 @@
+{
+  "run_id": "e7_x500",
+  "speed": 500.0,
+  "messages": 140423,
+  "offered_msg_per_s": 35971.945453534754,
+  "max_processed_rows_per_s": 14848.140495867769,
+  "latency_p50_s": 8.597362,
+  "latency_p95_s": 9.321212000000001
+}

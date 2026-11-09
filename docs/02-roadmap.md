@@ -60,7 +60,7 @@
 - [x] **E7** batch: [kết quả](experiments/E7-anomaly-ftx.md). Sau khi sửa phương pháp (W = 1 ngày, log-volume, sàn 0,5%), 8–9/11/2022 là top-2 ngày
 - [x] **E7** replay FTX 100× trên stream: báo động stream trùng batch 111/111; nến khớp official 5 758/5 758
 - [x] E7 throughput sơ bộ: 13,9k–25,5k bản tin/s (khoảng 750–1 370 lần live)
-- [ ] **E7** stress test theo bậc (`e7_stress.sh stress`) trên máy rảnh → `results/e7/stress.png`
+- [x] **E7** stress test theo bậc (`e7_stress.sh stress`) trên máy rảnh → `results/e7/stress.csv`, `results/e7/stress.png` (7 bậc `1×`..`1000×`, đỉnh xử lý 23,8k bản tin/s ở `200×`)
 - [x] Thống kê mô tả (Mảng 4): số dòng, phân bố trades/phút, khối lượng theo cặp × tháng (`experiments/descriptive_stats.py` → `results/desc/`)
 
 ## Tuần 4: Tổng hợp + báo cáo + demo
