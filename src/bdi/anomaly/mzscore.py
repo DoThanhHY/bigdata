@@ -72,12 +72,14 @@ def detect(candles: pd.DataFrame, window: int | None = None, threshold: float | 
     return pd.concat(out, ignore_index=True)
 
 
-def detect_for_batch(batch, source: str, history_source: str | None = None) -> None:
+def detect_for_batch(batch, source: str, history_source: str | None = None,
+                     ml_model: int | str | None = None) -> None:
     """Gọi trong foreachBatch: tính lại điểm cho các phút vừa được ghi.
 
     history_source: nguồn bù lịch sử khi nguồn chính chưa đủ 2W phút (VD luồng live mới
     chạy vài giờ => dùng 'official' do rest_klines kéo về). Phút nào nguồn chính có thì
     ưu tiên nguồn chính.
+    ml_model: 1 = HistGradientBoosting (mặc định), 2 = RandomForest.
     """
     from pyspark.sql import functions as F
 
@@ -99,7 +101,12 @@ def detect_for_batch(batch, source: str, history_source: str | None = None) -> N
         hist = pd.concat([hist, base]).drop_duplicates(["symbol", "minute"], keep="first")
     if hist.empty:
         return
+    from bdi.anomaly.ml import detect_ml
+
     found = detect(hist, w, cfg["threshold"])
+    found_ml = detect_ml(hist, w, model_choice=ml_model)
+    if not found_ml.empty:
+        found = pd.concat([found, found_ml], ignore_index=True)
     new_minutes = set(pd.to_datetime(keys["minute"], utc=True))
     found = found[found["minute"].isin(new_minutes)]
     rows = ((r.symbol, r.minute.to_pydatetime(), r.metric, float(r.value), float(r.mz_score), source)

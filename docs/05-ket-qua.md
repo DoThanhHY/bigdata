@@ -16,7 +16,7 @@ Xem trực quan:
 | E4 | Hệ thống chịu lỗi ra sao? | 4 kịch bản chủ động + máy ngủ 5,7 giờ: **0 nến thiếu/thừa/lệch**; phục hồi 5,7–25,6 s | ✅ |
 | E5 | Ghép mờ được không? | Ghép giữ thứ tự: **F1 = 0,995** (P 99,9%, R 99,0%) ở δ = 1 s; blocking giảm số cặp **250–2 750 lần** | ✅ |
 | E6 | Truy vấn xấp xỉ có đáng không? | Đếm phân biệt trên 420M giá trị: **nhanh hơn 12,7 lần, sai 0,76%**; phân vị chính xác hết RAM | ✅ (thời gian đo khi máy tải cao) |
-| E7 | Phát hiện được FTX không? | 8/11 và 9/11/2022 là **top-2 ngày** của tháng; stream trùng batch **111/111** báo động | ✅ (cần kiểm lại trên LUNA) |
+| E7 | Phát hiện được FTX không? | 8/11 và 9/11/2022 là **top-2 ngày** của tháng; kiểm chứng độc lập trên LUNA (9–12/5/2022) chiếm trọn **top 1–4**; stream trùng batch **111/111** báo động | ✅ |
 | C5 | Chọn nguồn thế nào? | Stream đầy đủ 100%, khớp 100%; hội tụ về official sau p50 = **13 s** | ⚠️ sơ bộ (~2 giờ đo) |
 
 ## Quy mô dữ liệu và hệ thống
@@ -32,6 +32,23 @@ Xem trực quan:
 | Raw archive | 665 255+ bản tin, offset Kafka liên tục, không thiếu/trùng |
 | Công nghệ | PySpark 4.0.4, Kafka 3.9 (KRaft), Postgres 16, Grafana 11, Docker Compose |
 | Test | 21/21 xanh (contract test C1, batch = streaming C2, taxonomy C3, linkage C4, mzscore E7) |
+
+### Thống kê mô tả 5 cặp × 4 tháng (`experiments/descriptive_stats.py`)
+
+Tổng cộng **418 156 831 bản ghi `aggTrades`** (gộp từ **1 049 045 915 giao dịch khớp lệnh `trades`**) trên **878 400 phút**:
+
+| Cặp | `aggTrades` 11/2022 | `aggTrades` 6–8/2026 | Khối lượng 11/2022 (tỷ USDT) | Khối lượng 6–8/2026 (tỷ USDT) | `trades`/phút p50 (11/2022 vs 2026) | % mua chủ động (`is_buyer_maker=false`) 11/2022 vs 2026 |
+|---|---|---|---|---|---|---|
+| BTCUSDT | 171 900 348 | 82 200 529 | 163,72 | 105,19 | 3 718 vs 1 577 | 50,22% vs 50,82–52,05% |
+| ETHUSDT | 22 564 378 | 72 254 973 | 30,25 | 50,22 | 427 vs 1 229 | 50,35% vs 49,68–51,49% |
+| BNBUSDT | 7 977 084 | 22 792 974 | 6,26 | 7,57 | 190 vs 326 | 52,33% vs 54,82–55,23% |
+| SOLUSDT | 7 077 107 | 13 772 739 | 4,59 | 16,74 | 121 vs 350 | 52,95% vs 52,46–55,12% |
+| XRPUSDT | 4 776 769 | 12 839 930 | 4,90 | 10,92 | 123 vs 243 | 48,49% vs 51,00–52,53% |
+| **Tổng (5 cặp)** | **214 295 686** | **203 861 145** | **209,72** | **190,63** | | |
+
+- Riêng **1 tháng 11/2022 (sự kiện FTX)** chiếm **51,2% tổng số `aggTrades`** (214,3M / 418,2M dòng) và **52,4% tổng khối lượng USDT** (209,7 tỷ USDT) của cả 4 tháng; đặc biệt `BTCUSDT` tháng 11/2022 có trung vị 3 718 trade/phút (p95 = 11 179, cực đại 60 643 trade/phút), cao gấp 2,4 lần giai đoạn 2026.
+- Ngày cao điểm FTX (8/11/2022), khối lượng `BTCUSDT` vọt lên **15,05 tỷ USDT/ngày**, gấp ~15 lần ngày thường năm 2026 (~1 tỷ USDT/ngày).
+- Bảng và hình: `results/desc/trades_by_month.csv`, `trades_per_minute_summary.csv`, `daily_quote_volume.csv`, `taker_buy_ratio.csv`, `trades_per_minute.png`, `daily_quote_volume.png`, `taker_buy_ratio.png`.
 
 ---
 
@@ -188,8 +205,12 @@ Phương pháp: modified z-score (Iglewicz–Hoaglin), |M| > 3,5, baseline 1 ng�
 | Throughput xử lý (lô 500k) | trung vị 13 879 · tối đa 25 454 bản tin/s, khoảng **750–1 370 lần** lưu lượng live |
 | Tải đưa vào tối đa | 26 964 bản tin/s, vượt khả năng xử lý của máy nên job tụt lại |
 
-- Lưu ý trung thực: cửa sổ và sàn được chọn sau khi xem dữ liệu tháng 11/2022, nên cần kiểm lại trên sự kiện khác (LUNA 5/2022).
-- Hình: `results/e7/ftx_btc.png`, `results/e7/alerts_per_day_nov22.png`.
+- **Stress test theo bậc tốc độ (`1×` → `1 000×`, 20 phút cao điểm FTX = 140 423 bản tin/bậc):** tốc độ xử lý đạt đỉnh **23 766 bản tin/s** ở `200×` (tải đưa vào 18 817 bản tin/s, độ trễ p50 = 6,54 s, p95 = 7,75 s), gấp **1 278 lần** lưu lượng live trung bình (`results/e7/stress.csv`, `results/e7/stress.png`). Độ trễ p95 tạo đường cong chữ U: giảm từ 9,86 s (`1×`, chờ watermark thời gian thực) xuống đáy 4,83 s (`50×`), rồi tăng lại lên 9,32 s ở `500×–1 000×` khi tải đưa vào (36k–47,5k bản tin/s) vượt công suất xử lý.
+- **Kiểm chứng ngoài mẫu trên sự kiện LUNA (5/2022, giữ nguyên W = 1440, |M| > 3,5, sàn 0,5%):** cả 4 ngày sự kiện đều đứng **top 1–4 của tháng 5/2022** — ngày 11/5 hạng **1** (384 báo động), 9/5 hạng **2** (237), 12/5 hạng **3** (106), 10/5 hạng **4** (82); trung bình tháng 46,4 báo động/ngày (`results/e7/sweep_luna.csv`). Riêng 4 ngày này chiếm 56,2% tổng báo động cả tháng, xác nhận tham số không bị overfit vào FTX.
+- **Mở rộng Học máy đa biến thuận chiều thời gian (`src/bdi/anomaly/ml.py`, `experiments/e7_ml_compare.py`, `results/e7/ml_comparison.csv`):** Trích xuất 11 đặc trưng vi mô & liên thị trường (cửa sổ trượt nhân quả $W=1440$ phút) và huấn luyện các mô hình `scikit-learn` hoàn toàn trên quá khứ (**LUNA `2022-05`**) để kiểm thử độc lập ở tương lai (**FTX `2022-11` + Quiet `2026-06..08`**):
+  - `RandomForest` và `HistGradientBoosting` nâng **F1-Score** từ `0,428` (Modified Z-Score) lên **`0,577 – 0,582`**, nâng **PR-AUC** gấp **3,1–3,4 lần** (từ `0,195` lên **`0,614 – 0,672`**), giảm hơn 2 lần báo động giả giai đoạn yên (`3,53 – 4,43` vs `9,36` báo động/ngày, đưa `SNR` từ `41,8` lên **`103,8 – 114,5`**).
+  - Bắt được **81,0%–90,5% (`145–162/179` phút)** các pha quét râu nến (*Flash Wick / Whipsaw*) trong vụ sập FTX mà `Modified Z-Score` đơn biến bỏ sót `100%` (`0/179`), với tốc độ suy luận đạt **0,974 – 1,320 ms / 1 000 dòng** (`757k – 1,03M dòng/giây`).
+- Hình: `results/e7/ftx_btc.png`, `results/e7/alerts_per_day_nov22.png`, `results/e7/stress.png`, `results/e7/ml_comparison_metrics.png`, `results/e7/ml_pr_feature_importance.png`.
 
 ## C5 · Chính sách chọn nguồn (sơ bộ)
 
@@ -236,6 +257,6 @@ Time-to-convergence: 100% nến hội tụ, p50 = 13,0 s. (*) p95 bị đội l�
 
 1. E3 đo trên cửa sổ 30 phút (140 nến mỗi cấu hình).
 2. E6 và stress test đo khi máy tải cao (load 20–48), nên con số thời gian chỉ mang tính tương đối.
-3. Tham số E7 được chọn trên chính dữ liệu FTX; chưa kiểm trên sự kiện khác.
+3. E7 không có nhãn chuẩn nên chỉ đánh giá theo sự kiện (FTX 11/2022 và kiểm chứng ngoài mẫu trên LUNA 5/2022) cùng proxy báo động giả ở kỳ yên 2026.
 4. C5 mới đo ~2 giờ.
 5. Mọi thứ chạy trên **một máy** 16 GB (local[*]); chưa thử cụm nhiều worker.

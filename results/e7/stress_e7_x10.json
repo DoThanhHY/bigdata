@@ -1,0 +1,9 @@
+{
+  "run_id": "e7_x10",
+  "speed": 10.0,
+  "messages": 140423,
+  "offered_msg_per_s": 1157.522333925348,
+  "max_processed_rows_per_s": 14589.430894308944,
+  "latency_p50_s": 4.82085,
+  "latency_p95_s": 5.088951299999998
+}

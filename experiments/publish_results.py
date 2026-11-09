@@ -28,8 +28,12 @@ TABLES = {
     "exp_e5": "e5/linkage.csv",
     "exp_e6": "e6/approx_local.csv",
     "exp_e7_sweep": "e7/sweep.csv",
+    "exp_e7_luna": "e7/sweep_luna.csv",
+    "exp_e7_stress": "e7/stress.csv",
+    "exp_e7_ml": "e7/ml_comparison.csv",
     "exp_c5": "c5/source_quality.csv",
     "exp_e7_sb": "e7/stream_vs_batch.csv",
+    "exp_desc": "desc/trades_by_month.csv",
 }
 
 
