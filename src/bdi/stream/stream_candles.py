@@ -34,7 +34,7 @@ from bdi.spark import get_spark
 
 
 def make_foreach_batch(source: str, topic: str, watermark_s: int, output_mode: str, anomaly: bool,
-                       anomaly_history: str | None = None):
+                       anomaly_history: str | None = None, ml_model: int = 1):
     def _fn(batch: DataFrame, batch_id: int) -> None:
         if batch.isEmpty():
             return
@@ -46,7 +46,7 @@ def make_foreach_batch(source: str, topic: str, watermark_s: int, output_mode: s
             append_versions(out, batch_id)
         if anomaly:
             from bdi.anomaly.mzscore import detect_for_batch
-            detect_for_batch(batch, source, anomaly_history)
+            detect_for_batch(batch, source, anomaly_history, ml_model=ml_model)
         batch.unpersist()
     return _fn
 
@@ -66,6 +66,8 @@ def main() -> None:
     ap.add_argument("--no-dedup", action="store_true", help="tắt loại trùng (minh họa nhãn DUPLICATE)")
     ap.add_argument("--anomaly", action="store_true", help="E7: phát hiện bất thường trên stream")
     ap.add_argument("--anomaly-history", help="nguồn bù lịch sử cho detector, VD official")
+    ap.add_argument("--ml-model", type=int, choices=[1, 2], default=cfg["anomaly"].get("ml_model", 1),
+                    help="Mô hình ML: 1 = HistGradientBoosting (mặc định), 2 = RandomForest")
     a = ap.parse_args()
 
     spark = get_spark(f"stream_candles_{a.run_id}", kafka=True)
@@ -93,7 +95,7 @@ def main() -> None:
     q = (candles.writeStream
          .outputMode(a.output_mode)
          .foreachBatch(make_foreach_batch(a.source, a.topic, a.watermark, a.output_mode, a.anomaly,
-                                          a.anomaly_history))
+                                          a.anomaly_history, a.ml_model))
          .option("checkpointLocation", str(ckpt))
          .trigger(processingTime=f"{a.trigger} seconds")
          .queryName(f"candles_{a.run_id}")

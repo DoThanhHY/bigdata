@@ -1,0 +1,11 @@
+{
+  "run_id": "e7_x200",
+  "topic": "binance.aggtrades.replay",
+  "speed": 200.0,
+  "messages": 140423,
+  "origin_us": 1668002400000000,
+  "replay_start_us": 1794199623776244,
+  "replay_end_us": 1794199631238665,
+  "jitter_pct": 0,
+  "jitter_max_s": 0
+}

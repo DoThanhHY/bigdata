@@ -44,3 +44,4 @@ anomaly:
   window_minutes: 1440               # baseline 1 ngày (60 phút thích nghi quá nhanh — xem E7)
   threshold: 3.5                     # Iglewicz–Hoaglin
   min_abs_return: 0.005              # sàn |log-return| 0,5% để bỏ cú nhảy nhỏ ở thị trường yên
+  ml_model: 1                        # 1 = HistGradientBoosting (mặc định), 2 = RandomForest
