@@ -14,6 +14,12 @@ KAFKA_PACKAGE = f"org.apache.spark:spark-sql-kafka-0-10_2.13:{SPARK_VERSION}"
 def get_spark(app: str, kafka: bool = False, master: str | None = None) -> SparkSession:
     # executor (Python UDF, foreachPartition) phải dùng cùng interpreter/venv với driver
     os.environ.setdefault("PYSPARK_PYTHON", sys.executable)
+    if os.name == "nt":
+        if not os.environ.get("HADOOP_HOME") and os.path.exists(r"C:\hadoop"):
+            os.environ["HADOOP_HOME"] = r"C:\hadoop"
+        if os.path.exists(r"C:\hadoop\bin") and r"C:\hadoop\bin" not in os.environ.get("PATH", ""):
+            os.environ["PATH"] = r"C:\hadoop\bin;" + os.environ.get("PATH", "")
+
     b = (
         SparkSession.builder.appName(app)
         .master(master or os.environ.get("SPARK_MASTER", "local[*]"))

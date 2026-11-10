@@ -34,7 +34,7 @@ python experiments/e2_batch_vs_official.py --run-id e2
   Kết luận (13/10/2026): 5 cặp × 4 tháng official đều đủ phút và **không có phút `trades = 0`**. Binance có sinh nến cho phút trống hay không vẫn chưa kiểm được với các cặp này; muốn trả lời dứt điểm thì cần một cặp thanh khoản thấp.
 - `UNKNOWN`: phải soi từng trường hợp. Nếu số lượng đáng kể, bổ sung luật vào `taxonomy.py`.
 
-## Kết quả sơ bộ
+## Kết quả
 
 | Cặp | Tháng | Số nến | % khớp tuyệt đối mọi trường |
 |---|---|---|---|

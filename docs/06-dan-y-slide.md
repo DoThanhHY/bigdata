@@ -19,7 +19,9 @@
 | Batch: E1, E2 | 6–7 | Mảng 1 |
 | Streaming: E3, E4, demo | 8–11 | Mảng 2 |
 | E5, E6 | 12–13 | Mảng 3 |
-| E7, C5, kết luận | 14–18 | Mảng 4 |
+| E7 | 14–15 | Mảng 4 |
+| C5 | 16 | Mảng 2 |
+| Bài học, kết luận | 17–18 | Cả nhóm |
 
 ---
 
@@ -78,7 +80,7 @@
 | C2 Viết một lần, chạy hai tầng | E2, E7 | 878 400/878 400 nến · 111/111 báo động |
 | C3 Đối soát + nhãn nguyên nhân | E2–E4 | 7 nhãn, 0 `UNKNOWN` |
 | C4 Ghép mờ có ground truth | E5 | F1 = 0,995 |
-| C5 Chọn nguồn theo độ hội tụ | E3, C5 | hội tụ p50 13 s |
+| C5 Chọn nguồn theo độ hội tụ | E3, C5 | 100% hội tụ · TTC p95 2,9 s |
 | C6 Lineage + idempotent | E4 | 0 nến lệch qua 5 sự cố |
 
 - **Thời gian:** 45 s
@@ -111,20 +113,20 @@
 - Chân slide: *Chứng minh cho C2*
 - **Thời gian:** 1 phút
 
-## Slide 8 · E3: Luồng thật gần như đúng thứ tự
+## Slide 8 · E3: Dữ liệu không tiêm jitter
 
-- **Tiêu đề:** Binance gần như không có bản tin trễ: watermark nhỏ là đủ
-- Con số: lệch thứ tự tối đa **0,78 s** · 4,1% bản tin đến sau bản tin mới hơn
-- Bảng 5 dòng (watermark → % khớp → p95 độ trễ): 0 s 100% 11,9 s ··· 30 s 100% 36,1 s
-- Thông điệp phụ: trên dữ liệu thật, watermark chỉ **đổi độ trễ**, không đổi độ đúng.
-- **Ghi chú:** giải thích ngắn rằng watermark chỉ tiến giữa các micro-batch, nên độ lệch dưới ~1 s không bao giờ bị loại.
+- **Tiêu đề:** Trong cửa sổ Azure 2 giờ, watermark chỉ đổi độ trễ, không đổi độ đúng
+- Con số: replay `1×` **60.001 bản tin** · 585 nến hoàn chỉnh/cấu hình · `late_rows_dropped = 0`
+- Bảng 5 dòng (watermark → % khớp → p95): 0 s → 100% → 5,70 s ··· 30 s → 100% → 35,09 s
+- Thông điệp phụ: kết luận chỉ áp dụng cho cửa sổ và cấu hình đã đo; không nói W=0 luôn an toàn trong mọi mạng.
+- **Ghi chú:** validator hiệu năng chưa đạt vì micro-batch p95 vượt trigger 2 giây khoảng 6–12%.
 - **Thời gian:** 1 phút
 
 ## Slide 9 · E3: Khi mạng xấu
 
-- **Tiêu đề:** Chỉ 5% bản tin trễ làm hỏng 98% nến: nhanh thì thiếu, đủ thì chậm
+- **Tiêu đề:** Chỉ 5% bản tin trễ làm 87,80% nến không khớp: nhanh thì thiếu, đủ thì chậm
 - Hình chính: `results/e3/tradeoff.png` (2 panel chung trục watermark)
-- Chú thích: đường xanh lá (5% bản tin trễ ≤ 20 s) đi từ **2,1%** ở W = 0 s lên **100%** ở W = 30 s; độ trễ p95 tăng lên 41 s
+- Chú thích: series jitter 5% tối đa 20 giây đi từ **12,20%** ở W = 0 s lên **100%** ở W = 30 s; độ trễ p95 tăng 6,14 → 35,24 s
 - Câu chốt: đây là lý do **batch phải là nguồn chuẩn sau T+1**, dẫn sang C5.
 - **Ghi chú:** nói rõ độ trễ được *tiêm có kiểm soát* vào replay, vì dữ liệu thật quá sạch để thấy trade-off. Không giấu điều này.
 - Chân slide: *Chứng minh cho C2, C3, C5*
@@ -202,8 +204,9 @@
 
 - **Tiêu đề:** Stream cho độ tươi, batch cho độ đúng, official để phân xử
 - Bảng quyết định 5 dòng (lấy từ 05-ket-qua.md, mục C5)
-- Hình nhỏ: `results/c5/ttc_cdf.png` (nến stream hội tụ về official sau p50 = 13 s)
+- Hình nhỏ: `results/c5/ttc_cdf.png` (100% nến hội tụ; TTC p50 = 0,0 s, p95 = 2,9 s)
 - 3 tiêu chí: completeness · timeliness · consistency
+- Chú thích: C5 đã hoàn tất đủ 24 giờ cho cả 3 nguồn (`stream`, `stream:update`, `batch`) đối soát với `official`.
 - **Thời gian:** 1 phút
 
 ## Slide 17 · Bài học kỹ thuật
@@ -220,12 +223,12 @@
 - **Kết luận (3 dòng)**, trả lời 3 RQ:
   - **RQ1:** suy đơn vị theo độ lớn xử lý được drift theo thời gian và giữa nguồn (E1).
   - **RQ2:** batch và stream khớp tuyệt đối khi kiến trúc đúng (E2, E4, E7). Khi lệch, taxonomy chỉ ra vì sao (E3).
-  - **RQ3:** stream cho độ tươi (~10–24 s), batch là chuẩn sau T+1, official phân xử (C5).
+  - **RQ3:** stream cho độ tươi (p50 11,36 s; p95 16,73 s), batch dùng sau T+1, official làm nguồn tham chiếu (C5).
 - **Hạn chế (trung thực):**
   - chạy trên 1 máy 16 GB;
-  - E3 cửa sổ 30 phút;
-  - E7 không có nhãn chuẩn nên chỉ đánh giá theo sự kiện (FTX 11/2022 và LUNA 5/2022);
-  - C5 mới đo ~2 giờ.
+  - E3 cửa sổ 2 giờ nhưng validator hiệu năng chưa đạt vì micro-batch p95 vượt trigger 6–12%;
+  - E7 không có nhãn chuẩn nên chỉ đánh giá theo sự kiện (FTX 11/2022 và LUNA 5/2022) cùng proxy báo động giả ở kỳ yên 2026;
+  - C5 đã đo trọn vẹn 24 giờ cho cả 3 nguồn nhưng chạy trên 1 máy (chưa kiểm chứng cụm nhiều worker);
 - **Hướng tiếp:**
   - cụm nhiều worker;
   - mở rộng bộ phát hiện sang mô hình học máy đa biến (Isolation Forest);
@@ -239,7 +242,7 @@
 | Slide | Nội dung | Nguồn |
 |---|---|---|
 | A1 | Bảng E1 đầy đủ (8 dòng) + Thống kê mô tả (`results/desc/`) | 05-ket-qua.md · E1 |
-| A2 | Bảng E3 đầy đủ: trigger 2 s, trigger 0, jitter | `results/e3/tradeoff.csv` |
+| A2 | Bảng E3 Azure đầy đủ: baseline + jitter, trigger 2 s | `results/e3/tradeoff.csv` |
 | A3 | Bảng E4 sự cố + 4 timeline | `results/e4/` |
 | A4 | Bảng E5 P/R/F1 đầy đủ + `blocking_cost.png` | `results/e5/` |
 | A5 | Bảng quét tham số E7 + kiểm chứng LUNA + Stress test | `results/e7/sweep.csv`, `sweep_luna.csv`, `stress.csv` |
@@ -248,7 +251,7 @@
 ## Câu hỏi hội đồng có thể hỏi (chuẩn bị sẵn)
 
 1. **"100% khớp có phải do so nhầm cùng một nguồn không?"** Không. Batch dựng từ aggTrades, official là klines, hai file khác nhau do Binance công bố riêng; có `file_checksum` khác nhau trong lineage.
-2. **"Sao phải tiêm độ trễ giả vào E3?"** Vì dữ liệu thật chỉ lệch tối đa 0,78 s, nhỏ hơn một micro-batch. Đó cũng là một kết quả. Phần tiêm độ trễ trả lời câu hỏi "nếu mạng xấu thì sao".
+2. **"Sao phải tiêm độ trễ giả vào E3?"** Trong series baseline của cửa sổ Azure, không bản tin nào bị watermark loại nên cả năm cấu hình đều khớp 100%. Phần jitter có kiểm soát trả lời câu hỏi "nếu mạng xấu thì sao" và luôn được trình bày tách biệt với dữ liệu không tiêm jitter.
 3. **"Tham số E7 có bị overfit không?"** Nhóm đã kiểm chứng độc lập trên sự kiện LUNA (5/2022) với tham số giữ nguyên hoàn toàn (`W=1440`, `|M|>3,5`, sàn `0,5%`): 4 ngày 9–12/5/2022 chiếm trọn top 1–4 của tháng (11/5 hạng 1 với 384 báo động, 9/5 hạng 2 với 237, 12/5 hạng 3 với 106, 10/5 hạng 4 với 82).
 4. **"Exactly-once thật không?"** Không phải exactly-once theo nghĩa giao dịch phân tán. Đây là *hiệu quả tương đương*: producer at-least-once, dedup theo `agg_id` trong watermark, upsert theo khóa. E4 chứng minh bằng 0 nến thừa.
 5. **"Máy 16 GB có đại diện cho big data không?"** Dữ liệu 420M dòng / 39 GB vượt RAM, nên Spark phải xử lý ngoài bộ nhớ. Phần mở rộng cụm nhiều worker nằm ở hướng tiếp.
@@ -258,4 +261,4 @@
 - [ ] Vẽ sơ đồ kiến trúc (slide 4)
 - [ ] Tạo biểu đồ cột E1 từ `results/e1/ablation.csv` (slide 6), hoặc dùng bảng
 - [ ] Quay video demo dự phòng 60 s (slide 11)
-- [ ] Cập nhật số liệu nếu chạy thêm E1 đủ 5 cặp, E7 trên LUNA, C5 đủ 24h
+- [x] Bổ sung dòng Batch vào C5 sau T+1; cập nhật nếu chạy thêm E1 đủ 5 cặp hoặc E7 trên LUNA

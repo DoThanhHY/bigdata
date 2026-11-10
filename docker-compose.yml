@@ -89,11 +89,23 @@ services:
 
   raw-archive:
     <<: *app
+    environment:
+      BDI__KAFKA__BOOTSTRAP: kafka:9092
+      BDI__POSTGRES__HOST: postgres
+      BDI__POSTGRES__PORT: "5432"
+      SPARK_DRIVER_MEMORY: 512m
+      SPARK_SHUFFLE_PARTITIONS: "2"
     command: ["python", "-m", "bdi.stream.raw_archive"]
 
   stream-candles:
     <<: *app
-    command: ["python", "-m", "bdi.stream.stream_candles", "--watermark", "5", "--source", "stream", "--run-id", "live",
+    environment:
+      BDI__KAFKA__BOOTSTRAP: kafka:9092
+      BDI__POSTGRES__HOST: postgres
+      BDI__POSTGRES__PORT: "5432"
+      SPARK_DRIVER_MEMORY: 1g
+      SPARK_SHUFFLE_PARTITIONS: "4"
+    command: ["python", "-m", "bdi.stream.stream_candles", "--watermark", "5", "--source", "stream", "--run-id", "${BDI_STREAM_RUN_ID:-live_post_c5}",
               "--anomaly", "--anomaly-history", "official"]
 
   # Nến official qua REST, cập nhật mỗi phút (Grafana + lịch sử cho detector)
@@ -113,7 +125,7 @@ services:
       SPARK_DRIVER_MEMORY: 1g
       SPARK_SHUFFLE_PARTITIONS: "4"
     command: ["python", "-m", "bdi.stream.stream_candles", "--watermark", "30", "--output-mode", "update",
-              "--source", "stream:update", "--run-id", "live_update"]
+              "--source", "stream:update", "--run-id", "${BDI_UPDATE_RUN_ID:-live_update_post_c5}"]
 
 volumes:
   kafka-data:

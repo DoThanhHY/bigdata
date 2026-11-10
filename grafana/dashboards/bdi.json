@@ -7,7 +7,7 @@
   "from": "now-3h",
   "to": "now"
  },
- "schemaVersion": 39,
+ "schemaVersion": 40,
  "panels": [
   {
    "id": 1,
@@ -146,6 +146,57 @@
    ]
   },
   {
+   "id": 11,
+   "type": "candlestick",
+   "title": "Nến OHLCV stream 1 phút — $symbol",
+   "datasource": {
+    "type": "grafana-postgresql-datasource",
+    "uid": "bdi-pg"
+   },
+   "gridPos": {
+    "x": 0,
+    "y": 4,
+    "w": 24,
+    "h": 10
+   },
+   "targets": [
+    {
+     "refId": "A",
+     "format": "time_series",
+     "rawQuery": true,
+     "editorMode": "code",
+     "rawSql": "SELECT\n    minute AS time,\n    open::double precision AS open,\n    high::double precision AS high,\n    low::double precision AS low,\n    close::double precision AS close,\n    volume::double precision AS volume\nFROM candles\nWHERE symbol = '$symbol'\n  AND source = 'stream'\n  AND $__timeFilter(minute)\nORDER BY minute;"
+    }
+   ],
+   "options": {
+    "mode": "candles",
+    "candleStyle": "candles",
+    "colorStrategy": "open-close",
+    "colors": {
+     "up": "green",
+     "down": "red"
+    },
+    "includeAllFields": false,
+    "legend": {
+     "calcs": [],
+     "displayMode": "list",
+     "placement": "bottom",
+     "showLegend": true
+    },
+    "tooltip": {
+     "mode": "multi",
+     "sort": "none"
+    }
+   },
+   "fieldConfig": {
+    "defaults": {
+     "unit": "currencyUSD",
+     "decimals": 2
+    },
+    "overrides": []
+   }
+  },
+  {
    "id": 5,
    "type": "timeseries",
    "title": "Giá đóng cửa theo nguồn — $symbol",
@@ -155,7 +206,7 @@
    },
    "gridPos": {
     "x": 0,
-    "y": 4,
+    "y": 14,
     "w": 12,
     "h": 8
    },
@@ -191,7 +242,7 @@
    },
    "gridPos": {
     "x": 12,
-    "y": 4,
+    "y": 14,
     "w": 12,
     "h": 8
    },
@@ -227,7 +278,7 @@
    },
    "gridPos": {
     "x": 0,
-    "y": 12,
+    "y": 22,
     "w": 12,
     "h": 8
    },
@@ -264,7 +315,7 @@
    },
    "gridPos": {
     "x": 12,
-    "y": 12,
+    "y": 22,
     "w": 12,
     "h": 8
    },
@@ -292,7 +343,7 @@
    },
    "gridPos": {
     "x": 0,
-    "y": 20,
+    "y": 30,
     "w": 12,
     "h": 8
    },
@@ -320,7 +371,7 @@
    },
    "gridPos": {
     "x": 12,
-    "y": 20,
+    "y": 30,
     "w": 12,
     "h": 8
    },

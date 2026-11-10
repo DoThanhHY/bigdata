@@ -25,13 +25,16 @@ def emission_latency(candles: pd.DataFrame, replay_run_id: str | None = None) ->
     Với dữ liệu phát lại (replay), mốc "phút kết thúc" được quy đổi sang đồng hồ
     thật theo results/replay/<run_id>.json:
         wall(x) = replay_start + (x − origin) / speed
+
+    Nến update có thể đã mang giá trị cuối cùng trước đúng mốc hết phút. Vì độ trễ
+    được định nghĩa từ lúc phút kết thúc, trường hợp đó được tính là 0 thay vì âm.
     """
     end_us = to_us(candles["minute"] + MINUTE)
     emitted_us = to_us(candles["emitted_at"])
     if replay_run_id:
         meta = json.loads((path("results") / "replay" / f"{replay_run_id}.json").read_text())
         end_us = meta["replay_start_us"] + (end_us - meta["origin_us"]) / meta["speed"]
-    return (emitted_us - end_us) / 1e6
+    return ((emitted_us - end_us) / 1e6).clip(lower=0)
 
 
 def pct(s: pd.Series, q: float) -> float:
@@ -43,7 +46,8 @@ def time_to_convergence(source: str, official: str = "official", dsn: str | None
     """C5: với mỗi nến, thời điểm phiên bản streaming trùng hẳn với official.
 
     Nến "hội tụ" tại phiên bản đầu tiên khớp official mà mọi phiên bản sau cũng khớp.
-    ttc_s = emitted_at(phiên bản đó) − (minute + 1 phút). NaN = không bao giờ hội tụ.
+    ttc_s = max(0, emitted_at(phiên bản đó) − (minute + 1 phút)).
+    NaN = không bao giờ hội tụ. Nếu nến đã ổn định trước mốc hết phút thì TTC = 0.
     """
     sql = """
     WITH v AS (
@@ -68,7 +72,7 @@ def time_to_convergence(source: str, official: str = "official", dsn: str | None
         df = pd.DataFrame(cur.fetchall(), columns=["symbol", "minute", "converged_at", "n_versions"])
     df["minute"] = pd.to_datetime(df["minute"], utc=True)
     df["converged_at"] = pd.to_datetime(df["converged_at"], utc=True)
-    df["ttc_s"] = (df["converged_at"] - (df["minute"] + MINUTE)).dt.total_seconds()
+    df["ttc_s"] = (df["converged_at"] - (df["minute"] + MINUTE)).dt.total_seconds().clip(lower=0)
     return df
 
 

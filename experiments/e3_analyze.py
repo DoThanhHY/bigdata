@@ -53,7 +53,7 @@ def series_name(trigger_s, jitter_pct, jitter_max_s) -> str:
 
 
 def main() -> None:
-    cfgs = [json.loads(p.read_text()) for p in sorted((path("results") / "e3" / "configs").glob("*.json"))]
+    cfgs = [json.loads(p.read_text(encoding="utf-8")) for p in sorted((path("results") / "e3" / "configs").glob("*.json"))]
     df = pd.DataFrame([analyze(c) for c in cfgs]).sort_values(
         ["jitter_pct", "trigger_s", "watermark_s"], ascending=[True, False, True])
     df.to_csv(_common.out_dir("e3") / "tradeoff.csv", index=False)

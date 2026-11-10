@@ -3,4 +3,6 @@ providers:
   - name: bdi
     folder: BDI
     type: file
+    allowUiUpdates: true
+    updateIntervalSeconds: 30
     options: { path: /var/lib/grafana/dashboards }

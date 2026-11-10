@@ -11,34 +11,47 @@
 
 ## Chạy
 
-```bash
-docker compose --profile c5 up -d stream-candles-update    # update mode, watermark 30s, chạy ≥ 24h
-# ngày hôm sau, khi đã có official + batch của ngày đó:
-python experiments/c5_source_policy.py --start 2026-10-14 --end 2026-10-15
+```powershell
+# Thu thập đã hoàn thành; các lệnh dưới chỉ dùng để tái lập một cửa sổ mới.
+docker compose --profile c5 up -d stream-candles-update
+
+# Sau T+1, nạp Batch rồi phân tích lại cửa sổ đã thu; không chạy lại live 24 giờ.
+python -m bdi.ingest.download --days 2026-11-07 2026-11-08
+python -m bdi.batch.load_klines --periods 2026-11-07 2026-11-08
+python -m bdi.batch.build_batch --periods 2026-11-07 2026-11-08
+python experiments/c5_source_policy.py `
+  --start 2026-11-07T11:34:00Z `
+  --end 2026-11-08T11:34:00Z `
+  --sources stream stream:update batch
 ```
 
 ## Đầu ra
 
-- `results/c5/source_quality.csv`: bảng 3 tiêu chí cho `stream`, `stream:update`, `batch`
+- `results/c5/source_quality.csv`: bảng completeness/consistency/timeliness của ba nguồn `stream`, `stream:update`, `batch` (so với chuẩn `official`)
 - `results/c5/ttc_cdf.png`: CDF của TTC
 
-## Kết quả sơ bộ (14/10/2026, 02:45–05:00 UTC, 5 cặp, official qua REST)
+## Kết quả 24 giờ (07–08/11/2026, 11:34–11:34 UTC, 5 cặp)
+
+Cửa sổ có đúng 7.200 nến cho mỗi nguồn (`stream`, `stream:update`, `batch`, `official`) và 100.826 phiên bản `stream:update`. Một reconnect chủ động diễn ra lúc 11:08:13 UTC ngày 08/11, kéo dài khoảng 2 giây và backfill đủ 58 bản tin.
 
 | Nguồn | Completeness | Consistency | Timeliness p50 | Timeliness p95 |
 |---|---|---|---|---|
-| `stream` (append, W = 5 s) | 100% | 100% | 24,2 s | 359 s |
-| `stream:update` (update, W = 30 s) | 100% | 100% | 10,0 s | 303 s |
+| `stream` (append, W = 5 s) | 100% | 100% | 11,36 s | 16,73 s |
+| `stream:update` (update, W = 30 s) | 100% | 100% | 0,00 s | 2,22 s |
+| `batch` (T+1) | 100% | 100% | 131.534,24 s (~36,54 h) | 170.391,81 s (~47,33 h) |
 
-Time-to-convergence (`stream:update`): **100% nến hội tụ**, p50 = 13,0 s, p95 = 306,6 s (`results/c5/ttc_cdf.png`).
+Timeliness của `batch` phản ánh thời điểm chạy job nạp Batch T+1 so với mốc đóng phút, không dùng để diễn giải như độ trễ thời gian thực.
 
-Lưu ý: p95 bị đội lên vì khoảng đo trùng với E4 (kill Spark lúc 02:40, restart Kafka lúc 02:51) và với lúc máy quá tải do replay FTX 100× (load 20–48). Cần đo lại trên 24h live khi máy rảnh. p50 phản ánh hành vi bình thường. Batch của ngày 14/10 chỉ có sau T+1, nên chưa có cột batch.
+Time-to-convergence (`stream:update`): **100% nến hội tụ**; 64,44% có TTC = 0; p50 = 0,0 s, p95 = 2,9 s, p99 = 4,8 s và lớn nhất 8,2 s (`results/c5/ttc_cdf.png`). TTC được chặn dưới tại 0 giây: nến đã ổn định trước hoặc đúng mốc hết phút được tính là hội tụ tại mốc hết phút, không biểu diễn bằng thời gian âm.
 
-## Quy tắc chọn nguồn (điền số liệu thật)
+Kết quả đã chốt trọn vẹn cho cả ba nguồn (`stream`, `stream:update`, `batch`) đối soát với `official` trên cùng cửa sổ 24 giờ.
+
+## Quy tắc chọn nguồn
 
 | Nhu cầu | Nguồn | Căn cứ |
 |---|---|---|
-| Dashboard, cảnh báo | Streaming | timeliness p50 = 10–24 s; consistency = 100% (sơ bộ). Có thể xem nến từ ~10 s sau khi phút kết thúc |
+| Dashboard, cảnh báo | Streaming | Cửa sổ 24 giờ: timeliness p50 = 11,36 s, p95 = 16,73 s; consistency = 100% |
 | Phân tích sau T+1 | Batch / official | consistency = 100% (E2: 878 400 nến) |
-| Ba nguồn xung đột | Official là chuẩn | |
+| Ba nguồn xung đột | Official là nguồn tham chiếu do Binance công bố | Không gọi là căn cứ pháp lý |
 | Sau sự cố WS | Stream vẫn dùng được nhờ backfill; batch là nguồn kiểm chứng | E4: 0 nến thiếu/lệch ở cả 4 kịch bản và khi máy ngủ 5,7 giờ |
-| Mạng xấu, nhiều bản tin trễ | Không tin stream cho tới khi qua watermark đủ lớn; dùng batch | E3 jitter: 5% bản tin trễ ≤ 20 s làm khớp chỉ còn 2% ở W = 0 s, 100% ở W = 30 s |
+| Mạng xấu, nhiều bản tin trễ | Không tin stream cho tới khi qua watermark đủ lớn; dùng batch | E3 jitter Azure: W = 0 s khớp 12,20%; W = 30 s khớp 100% |

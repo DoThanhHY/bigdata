@@ -7,7 +7,7 @@
 | Mảng | Phụ trách | Thí nghiệm | Slide trình bày |
 |---|---|---|---|
 | 1 · Batch, lineage | _______ | E1, E2, C1, C2, C6 | 1–7 |
-| 2 · Streaming, chịu lỗi | _______ | E3, E4, C3, C5, demo | 8–11, 16 |
+| 2 · Streaming, chịu lỗi | Đào Quang Huy | E3, E4, C3, C5, demo | 8–11, 16 |
 | 3 · Ghép mờ, truy vấn xấp xỉ | _______ | E5, E6 | 12–13 |
 | 4 · Bất thường, Grafana, thống kê | _______ | E7, thống kê mô tả | 14–15, 17 |
 | Cả nhóm | | Báo cáo, kết luận | 18 |
@@ -125,57 +125,52 @@ Hiện E1 chưa có hình. Viết thêm phần vẽ vào cuối `experiments/e1_
 
 ### Mảng 2 · Streaming, chịu lỗi (E3, E4, C3, C5, demo)
 
-**Đã xong:** E3 trên 30 phút (dữ liệu thật + tiêm độ trễ), E4 với 4 kịch bản + sự cố máy ngủ, C5 sơ bộ. Toàn bộ việc dưới đây làm **trên máy đang chạy luồng live**.
+**Đã xong:** E3 Azure 2 giờ (baseline + jitter), E4 với 4 kịch bản chủ động + sự cố máy ngủ, C3 và C5 24 giờ cho Stream/Official. **Còn thiếu:** Batch T+1 của cửa sổ C5, video demo và slide cuối.
 
-#### B2.1 Giữ luồng live chạy liên tục (bắt buộc, hằng ngày)
+#### B2.1 Bật lại luồng live khi cần demo
 
-```bash
-make live-status                 # nến stream mới nhất phải cách hiện tại < 2 phút
-docker compose ps                # ws-producer, stream-candles, raw-archive, official-poller đều "Up"
-caffeinate -dims &               # giữ máy không ngủ (macOS)
+```powershell
+docker compose up -d kafka postgres grafana ws-producer stream-candles official-poller
+docker compose ps
+make live-status                 # chờ Spark 2–3 phút trước khi kiểm tra
 ```
 
-Máy ngủ hay quá tải từng làm hỏng một lượt E3; xem bẫy P12, P13 trong [03-pitfalls.md](03-pitfalls.md).
+Không cần bật `stream-candles-update` chỉ để quay demo; dữ liệu TTC 24 giờ đã thu xong. Nếu chạy thí nghiệm dài, phải tắt Sleep trên Windows hoặc dùng cơ chế giữ máy thức tương ứng trên hệ điều hành.
 
-#### B2.2 Chạy lại E3 trên cửa sổ dài (nên làm)
+#### B2.2 E3 Azure 2 giờ — đã hoàn thành
 
-Chọn **2 giờ sôi động** (13:30–15:30 UTC, giờ mở cửa Mỹ) của một ngày đã có trong raw archive.
+Kết quả gốc nằm tại `results/e3-azure-20261108/`; bản canonical dùng cho dashboard là `results/e3/tradeoff.csv` và `results/e3/tradeoff.png`.
 
-```bash
-ls data/lake/bronze/raw_aggtrades/                                   # xem các ngày đã có
-python -m bdi.ingest.rest_klines --start 2026-10-15T13:30 --end 2026-10-15T15:30    # official cho khoảng đó
-GROUP=2 experiments/e3_watermark_sweep.sh 2026-10-15 2026-10-15T13:30 2026-10-15T15:30
-JITTER_PCT=5 JITTER_MAX=20 GROUP=3 experiments/e3_watermark_sweep.sh 2026-10-15 2026-10-15T13:30 2026-10-15T15:30
-python experiments/e3_analyze.py
+- Baseline: mọi watermark khớp 100%; p95 tăng 5,70 → 35,09 giây.
+- Jitter 5% tối đa 20 giây: W=0 khớp 12,20%; W=30 khớp 100%, p95 35,24 giây.
+- Validator ghi `[invalid]` vì micro-batch p95 vượt trigger 6–12%; không cần chạy lại chỉ để đổi nhãn nếu báo cáo giữ rõ giới hạn này.
+
+#### B2.3 Bổ sung Batch cho C5 24 giờ
+
+```powershell
+# Khi Binance đã công bố archive ngày 08/11:
+python -m bdi.ingest.download --days 2026-11-07 2026-11-08
+python -m bdi.batch.load_klines --periods 2026-11-07 2026-11-08
+python -m bdi.batch.build_batch --periods 2026-11-07 2026-11-08
+python experiments/c5_source_policy.py `
+  --start 2026-11-07T11:34:00Z `
+  --end 2026-11-08T11:34:00Z `
+  --sources stream stream:update batch
 ```
 
-- Mất khoảng 6–7 giờ máy (3 + 2 lượt × 2 giờ). Tắt mọi việc nặng khác trong lúc chạy.
-- **Đạt khi:** trong log replay, dòng `trễ so với nhịp mục tiêu` luôn < 1 s.
-- Trước khi chạy, xóa cấu hình cũ trong `results/e3/configs/` (hoặc chuyển sang thư mục khác), để hình không trộn hai cửa sổ.
+Không thu lại live 24 giờ. Chỉ nạp Batch và chạy lại chương trình phân tích trên dữ liệu đã lưu.
 
-#### B2.3 Hoàn thiện C5 trên 24 giờ (bắt buộc)
-
-```bash
-# ngày hôm sau, khi Binance đã công bố file ngày (T+1):
-python -m bdi.ingest.download --days 2026-10-15
-python -m bdi.batch.load_klines --periods 2026-10-15
-python -m bdi.batch.build_batch --periods 2026-10-15
-python experiments/c5_source_policy.py --start 2026-10-15 --end 2026-10-16 --sources stream stream:update batch
-```
-
-**Cập nhật:** bảng trong `docs/experiments/C5-source-policy.md` (lúc này có thêm cột batch), rồi viết bảng quy tắc chọn nguồn cho báo cáo.
-
-#### B2.4 E4: chờ lần ngắt kết nối tự nhiên sau 24 giờ
+#### B2.4 E4 reconnect 24 giờ — đã hoàn thành
 
 ```sql
 SELECT symbol, disconnected_at, backfilled, reason FROM ws_gaps WHERE reason = 'proactive_24h';
 ```
 
-Khi đã có dòng, chạy lại `python experiments/e4_analyze.py` và đối soát quanh thời điểm đó (`compare --left stream --start … --end …`).
+Đã ghi nhận 5 symbol, reconnect khoảng 2 giây và backfill đủ 58 bản tin. Không cần gây thêm sự cố cho kết quả C5 đã chốt.
 
 #### B2.5 Viết báo cáo C3
 
-Bảng nhãn nguyên nhân gộp từ E2, E3, E4 (xem mục C3 trong `05-ket-qua.md`). Nêu nhãn mới `CAPTURE_START`, phát hiện khi chạy thật.
+Đối soát live ghi nhận 5 `CAPTURE_START` trong phút đầu, 0 `UNKNOWN`; E2 và E4 không có nến lệch. Phân biệt nhãn được định nghĩa trong taxonomy với nhãn đã quan sát thực tế.
 
 #### B2.6 Chuẩn bị demo (bắt buộc)
 
@@ -279,16 +274,16 @@ SPEEDS="1 10 50 100 200" experiments/e7_stress.sh stress
 |---|---|---|
 | Ngày 1–2 | A1–A3 cho mọi người; điền tên phụ trách | Cả nhóm |
 | Ngày 2–3 | B1.1, B4.1, B3.2 (việc nặng, xếp lần lượt trên máy có dữ liệu) | Mảng 1, 4, 3 |
-| Ngày 3 | B2.3 (C5 đủ 24h), B2.4 | Mảng 2 |
-| Ngày 3–5 | B2.2 (E3 cửa sổ dài, chạy qua đêm với `caffeinate`) | Mảng 2 |
+| Việc gần nhất | B2.3: nạp Batch C5 sau T+1; không chạy lại live 24 giờ | Mảng 2 |
+| Việc gần nhất | B2.6: quay video demo, hoàn thiện slide 8–11 và 16 | Mảng 2 |
 | Cuối tuần 3 | Nháp báo cáo từng mảng; B4.2 thống kê mô tả | Mỗi mảng |
 | Tuần 4 | Chốt số liệu → cập nhật `05-ket-qua.md` + trang web → làm slide → tập demo 2 lần | Cả nhóm |
 
-**Máy có dữ liệu chỉ có một**, nên các việc nặng (E1 đủ, LUNA, E6, E3 cửa sổ dài, stress) phải **xếp lịch lần lượt**, không chạy chồng lên nhau. Chạy chồng sẽ làm sai số đo thời gian và có thể làm sập luồng live (bẫy P13, P16).
+**Máy có dữ liệu chỉ có một**, nên các việc nặng còn lại (E1 đủ, LUNA, E6, stress) phải **xếp lịch lần lượt**, không chạy chồng lên nhau. Chạy chồng sẽ làm sai số đo thời gian và có thể làm sập luồng live (bẫy P13, P16).
 
 **Nếu trễ tiến độ, cắt theo thứ tự:**
 1. E6 trên 2 worker;
 2. Stress test;
-3. E3 cửa sổ dài.
+3. Chạy lại E3 (kết quả Azure hiện đã đủ cho báo cáo, chỉ chạy lại nếu bắt buộc đạt validator hiệu năng).
 
-**Không cắt:** C5 đủ 24h, E7 trên LUNA, demo.
+**Không cắt:** bổ sung Batch C5, demo và việc diễn giải trung thực giới hạn E3.
