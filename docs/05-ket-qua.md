@@ -1,6 +1,6 @@
 # 05 · Tổng hợp kết quả
 
-**Nhóm 3 · IT5427** · Cập nhật ngày 08/11/2026. Chi tiết từng thí nghiệm nằm trong [docs/experiments/](experiments/); số liệu gốc (CSV) và hình (PNG) nằm trong `results/`.
+**Nhóm 3 · IT5427** · Cập nhật ngày 08/11/2026 (E1 đủ 5 cặp × 4 tháng chạy ngày 25/10/2026). Chi tiết từng thí nghiệm nằm trong [docs/experiments/](experiments/); số liệu gốc (CSV) và hình (PNG) nằm trong `results/`.
 
 Xem trực quan:
 - **Trang kết quả (web):** https://claude.ai/artifact/HCZmyQry8Uk5BDzHwDsUCP
@@ -10,7 +10,7 @@ Xem trực quan:
 
 | # | Câu hỏi | Kết quả chính | Trạng thái |
 |---|---|---|---|
-| E1 | Bỏ qua schema drift thì hỏng đến đâu? | Bản naive hỏng **100%** dữ liệu 2026 (0% nến đúng); bản drift-aware đúng **100%** | ✅ (SOL, XRP; chưa đủ 5 cặp) |
+| E1 | Bỏ qua schema drift thì hỏng đến đâu? | Bản naive hỏng **100%** dữ liệu 2026 (0% nến đúng, 15/15 tổ hợp cặp × tháng); bản drift-aware đúng **100%** ở cả 40 dòng | ✅ (5 cặp × 4 tháng) |
 | E2 | Batch có khớp official không? | **878 400/878 400** nến khớp tuyệt đối O/H/L/C/V + số trades | ✅ |
 | E3 | Watermark đánh đổi thế nào? | Replay 1× trên Azure: 100% khớp ở mọi watermark, p95 tăng 5,70 → 35,09 s. Với jitter 5% tối đa 20 s: khớp **12,20%** ở W = 0 s và **100%** ở W = 30 s | ⚠️ có kết quả; validator hiệu năng chưa đạt |
 | E4 | Hệ thống chịu lỗi ra sao? | 4 kịch bản chủ động + máy ngủ 5,7 giờ: **0 nến thiếu/thừa/lệch**; phục hồi 5,7–25,6 s | ✅ |
@@ -54,20 +54,25 @@ Tổng cộng **418 156 831 bản ghi `aggTrades`** (gộp từ **1 049 045 915 
 
 ## E1 · Ablation schema drift — chứng minh C1
 
-| Cặp | Kỳ | Phiên bản | Bản ghi | % mốc vô lý | % nến đúng |
-|---|---|---|---|---|---|
-| SOLUSDT | 2022-11 | naive | 7 077 107 | 0% | 100% |
-| SOLUSDT | 2022-11 | drift-aware | 7 077 107 | 0% | 100% |
-| SOLUSDT | 2026-08 | naive | 4 977 119 | **100%** | **0%** |
-| SOLUSDT | 2026-08 | drift-aware | 4 977 119 | 0% | 100% |
-| XRPUSDT | 2022-11 | naive | 4 776 769 | 0% | 100% |
-| XRPUSDT | 2022-11 | drift-aware | 4 776 769 | 0% | 100% |
-| XRPUSDT | 2026-08 | naive | 6 016 728 | **100%** | **0%** |
-| XRPUSDT | 2026-08 | drift-aware | 6 016 728 | 0% | 100% |
+5 cặp × 4 tháng, gộp theo kỳ (25/10/2026):
 
+| Kỳ | Đơn vị | Phiên bản | Bản ghi | % mốc vô lý | % nến đúng |
+|---|---|---|---|---|---|
+| 2022-11 | ms | naive | 214 295 686 | 0% | 100% |
+| 2022-11 | ms | drift-aware | 214 295 686 | 0% | 100% |
+| 2026-06 | µs | naive | 84 092 148 | **100%** | **0%** |
+| 2026-06 | µs | drift-aware | 84 092 148 | 0% | 100% |
+| 2026-07 | µs | naive | 57 411 961 | **100%** | **0%** |
+| 2026-07 | µs | drift-aware | 57 411 961 | 0% | 100% |
+| 2026-08 | µs | naive | 62 357 036 | **100%** | **0%** |
+| 2026-08 | µs | drift-aware | 62 357 036 | 0% | 100% |
+
+- Tổng 418 156 831 bản ghi, 878 400 nến official. Mỗi cặp đều cho cùng một kết quả; bảng 40 dòng nằm trong [experiments/E1-drift-ablation.md](experiments/E1-drift-ablation.md).
 - Drift xảy ra ở hai chỗ: theo thời gian (CSV 2022 dùng ms, CSV 2026 dùng µs) và **giữa các nguồn** (WS JSON vẫn dùng ms, CSV 2026 dùng µs).
 - Một hàm suy đơn vị theo độ lớn giá trị xử lý được cả hai; contract test gồm 3 nguồn × 2 giai đoạn + giây/ns (13 case).
-- File: `results/e1/ablation.csv`. Chưa có hình; dùng bảng trên.
+- **Tái lập được:** chạy lại trên một máy khác (Windows 11, 32 GB), 8 dòng SOL và XRP trùng từng số với lần chạy 13/10.
+- **Hồ sơ nguồn:** cả 5 file 2022-11 có timestamp 13 chữ số (ms), cả 15 file 2026 có 16 chữ số (µs).
+- File: `results/e1/ablation.csv`, hình `results/e1/ablation.png`.
 
 ## E2 · Batch vs official — chứng minh C2, C3
 
@@ -79,6 +84,15 @@ Tổng cộng **418 156 831 bản ghi `aggTrades`** (gộp từ **1 049 045 915 
 - Không nến nào lệch, nên không có nhãn nguyên nhân.
 - Câu hỏi mở của C3: official của 5 cặp × 4 tháng **không có phút `trades = 0`**, nên `EMPTY_MINUTE` không xảy ra với các cặp thanh khoản cao này.
 - Hình: `results/e2/heatmap_all_match.png` (mọi ô 100%; trên slide nên dùng bảng hoặc con số lớn).
+
+**Phản chứng C2** (`experiments/c2_counterfactual.py`, 01/11/2026, cùng 878 400 nến, trade đã xáo thứ tự): bỏ từng điểm kỹ thuật thì còn khớp bao nhiêu.
+
+| Biến thể sai | % phút khớp official |
+|---|---|
+| Open = `first(price)` / Close = `last(price)` | 13,29% / 14,42% |
+| Volume cộng bằng `double`, so tuyệt đối | 47,83% (làm tròn 8 chữ số: 99,999%) |
+| trades = số dòng aggTrade | 0,47% (trung vị 3,7 trade/aggTrade) |
+| `quote_volume` như `build_candles` hiện tại | BTCUSDT chỉ 0,19% (tích Decimal bị làm tròn về 6 chữ số lẻ); cách sửa `decimal(18,8) × decimal(18,8)` khớp 100% |
 
 ## E3 · Trade-off watermark — chứng minh C2, C3, C5
 
@@ -237,9 +251,8 @@ Kết quả trên đã chốt hoàn chỉnh cho cả ba nguồn (`stream`, `stre
 
 ## Hạn chế cần nêu trong báo cáo
 
-1. E1 mới chạy 2/5 cặp (kết luận khó thay đổi).
-2. E3 dùng cửa sổ 2 giờ trên một VM Azure; validator hiệu năng chưa đạt vì micro-batch p95 vượt trigger 6–12%.
-3. E6 và stress test đo khi máy tải cao (load 20–48), nên con số thời gian chỉ mang tính tương đối.
-4. E7 không có nhãn chuẩn nên chỉ đánh giá theo sự kiện (FTX 11/2022 và kiểm chứng ngoài mẫu trên LUNA 5/2022) cùng proxy báo động giả ở kỳ yên 2026.
-5. C5 đã đo trọn vẹn 24 giờ cho cả ba nguồn (`stream`, `stream:update`, `batch` đối soát với `official`), nhưng mọi job chạy trên một máy nên chưa đại diện cho cụm production.
-6. Mọi thứ chạy trên **một máy** 16 GB (local[*]); chưa thử cụm nhiều worker.
+1. E3 dùng cửa sổ 2 giờ trên một VM Azure; validator hiệu năng chưa đạt vì micro-batch p95 vượt trigger 6–12%.
+2. E6 và stress test đo khi máy tải cao (load 20–48), nên con số thời gian chỉ mang tính tương đối.
+3. E7 không có nhãn chuẩn nên chỉ đánh giá theo sự kiện (FTX 11/2022 và kiểm chứng ngoài mẫu trên LUNA 5/2022) cùng proxy báo động giả ở kỳ yên 2026.
+4. C5 đã đo trọn vẹn 24 giờ cho cả ba nguồn (`stream`, `stream:update`, `batch` đối soát với `official`), nhưng mọi job chạy trên một máy nên chưa đại diện cho cụm production.
+5. Mọi thứ chạy trên **một máy** 16 GB (local[*]); chưa thử cụm nhiều worker.

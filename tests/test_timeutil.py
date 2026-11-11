@@ -19,6 +19,8 @@ CASES = [
     ("WS JSON 2026 (ms mặc định)", T26_US // 1000, T26_US // 1000 * 1000),
     ("WS JSON 2026 timeUnit=MICROSECOND", T26_US, T26_US),
     ("nano-giây", T26_US * 1000, T26_US),
+    # giá trị ns lẻ: chia bằng double (2^53 ≈ 9e15 < 1.7e18) làm floor lệch 1 µs
+    ("nano-giây lẻ", 1_742_686_949_178_720_991, 1_742_686_949_178_720),
     ("giây", 1_786_795_200, 1_786_795_200_000_000),
 ]
 

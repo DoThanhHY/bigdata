@@ -56,7 +56,8 @@ def to_micros_col(c: Column | str) -> Column:
     v = v.cast("long")
     a = F.abs(v)
     return (
-        F.when(a >= F.lit(_NS_MIN), F.floor(v / 1_000).cast("long"))
+        # chia trên decimal: `/` giữa hai long trả về double, lệch 1 µs với giá trị ns ~1e18
+        F.when(a >= F.lit(_NS_MIN), F.floor(v.cast("decimal(20,0)") / 1_000).cast("long"))
         .when(a >= F.lit(_US_MIN), v)
         .when(a >= F.lit(_MS_MIN), v * 1_000)
         .when(a >= F.lit(_S_MIN), v * 1_000_000)

@@ -84,7 +84,7 @@ Số liệu lấy từ `docs/experiments/<E?>.md`. Hạn nộp bản nháp: **cu
 
 ### Mảng 1 · Batch, lineage (E1, E2, C1, C2, C6)
 
-**Đã xong:** E2 (878 400/878 400 nến khớp), E1 trên SOL + XRP, toàn bộ code batch.
+**Đã xong:** E2 (878 400/878 400 nến khớp), toàn bộ code batch, B1.1 E1 đủ 5 cặp × 4 tháng và B1.2 hình E1 (25/10). Còn B1.3, B1.4.
 
 #### B1.1 Chạy E1 cho đủ 5 cặp × 4 tháng (bắt buộc)
 
@@ -92,8 +92,12 @@ Cần dữ liệu aggTrades + klines của **cả 4 tháng, 5 cặp** (khoảng 
 
 ```bash
 python -m bdi.ingest.download                    # bỏ qua nếu máy đã có data/raw
-python experiments/e1_drift_ablation.py          # 1–2 giờ; KHÔNG chạy cùng lúc việc nặng khác
+python experiments/e1_drift_ablation.py --symbols BTCUSDT ETHUSDT BNBUSDT SOLUSDT XRPUSDT \
+    --periods 2022-11 2026-06 2026-07 2026-08    # 1,5–2 giờ; KHÔNG chạy cùng lúc việc nặng khác
+python experiments/e1_check.py                     # kiểm tiêu chí đạt
 ```
+
+Luôn truyền `--periods`: thiếu nó, script lấy cả các file theo ngày có trong manifest.
 
 - **Đầu ra:** `results/e1/ablation.csv` có **40 dòng** (5 cặp × 4 tháng × 2 phiên bản).
 - **Đạt khi:** mọi dòng `naive` + kỳ 2026 có `pct_candle_ok = 0`; mọi dòng `drift_aware` có `pct_candle_ok = 100`.
@@ -101,7 +105,7 @@ python experiments/e1_drift_ablation.py          # 1–2 giờ; KHÔNG chạy c�
 
 #### B1.2 Vẽ hình E1 cho slide 6
 
-Hiện E1 chưa có hình. Viết thêm phần vẽ vào cuối `experiments/e1_drift_ablation.py`:
+Đã xong (25/10): `results/e1/ablation.png`, vẽ lại bằng `python experiments/e1_drift_ablation.py --plot-only`. Thiết kế:
 - biểu đồ cột nhóm: trục x là kỳ, mỗi kỳ 2 cột (naive, drift-aware), trục y là % nến đúng;
 - dùng `_common.SERIES` và `_common.save(fig, "e1", "ablation")`, làm theo mẫu `experiments/e2_batch_vs_official.py`.
 
