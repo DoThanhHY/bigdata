@@ -26,7 +26,7 @@ TABLES = {
     "exp_e3": "e3/tradeoff.csv",
     "exp_e4": "e4/incidents.csv",
     "exp_e5": "e5/linkage.csv",
-    "exp_e6": "e6/approx_local.csv",
+    "exp_e6": "e6/approx_idle.csv",
     "exp_e7_sweep": "e7/sweep.csv",
     "exp_e7_luna": "e7/sweep_luna.csv",
     "exp_e7_stress": "e7/stress.csv",

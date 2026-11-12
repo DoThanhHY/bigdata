@@ -1,6 +1,6 @@
 # 05 · Tổng hợp kết quả
 
-**Nhóm 3 · IT5427** · Cập nhật ngày 08/11/2026. Chi tiết từng thí nghiệm nằm trong [docs/experiments/](experiments/); số liệu gốc (CSV) và hình (PNG) nằm trong `results/`.
+**Nhóm 3 · IT5427** · Cập nhật ngày 11/11/2026 (E1 đủ 5 cặp × 4 tháng). Chi tiết từng thí nghiệm nằm trong [docs/experiments/](experiments/); số liệu gốc (CSV) và hình (PNG) nằm trong `results/`.
 
 Xem trực quan:
 - **Trang kết quả (web):** https://claude.ai/artifact/HCZmyQry8Uk5BDzHwDsUCP
@@ -10,12 +10,12 @@ Xem trực quan:
 
 | # | Câu hỏi | Kết quả chính | Trạng thái |
 |---|---|---|---|
-| E1 | Bỏ qua schema drift thì hỏng đến đâu? | Bản naive hỏng **100%** dữ liệu 2026 (0% nến đúng); bản drift-aware đúng **100%** | ✅ (SOL, XRP; chưa đủ 5 cặp) |
+| E1 | Bỏ qua schema drift thì hỏng đến đâu? | Bản naive hỏng **100%** dữ liệu 2026 (0% nến đúng); bản drift-aware đúng **100%** | ✅ (5 cặp × 4 tháng) |
 | E2 | Batch có khớp official không? | **878 400/878 400** nến khớp tuyệt đối O/H/L/C/V + số trades | ✅ |
 | E3 | Watermark đánh đổi thế nào? | Replay 1× trên Azure: 100% khớp ở mọi watermark, p95 tăng 5,70 → 35,09 s. Với jitter 5% tối đa 20 s: khớp **12,20%** ở W = 0 s và **100%** ở W = 30 s | ⚠️ có kết quả; validator hiệu năng chưa đạt |
 | E4 | Hệ thống chịu lỗi ra sao? | 4 kịch bản chủ động + máy ngủ 5,7 giờ: **0 nến thiếu/thừa/lệch**; phục hồi 5,7–25,6 s | ✅ |
 | E5 | Ghép mờ được không? | Ghép giữ thứ tự: **F1 = 0,995** (P 99,9%, R 99,0%) ở δ = 1 s; blocking giảm số cặp **250–2 750 lần** | ✅ |
-| E6 | Truy vấn xấp xỉ có đáng không? | Đếm phân biệt trên 420M giá trị: **nhanh hơn 12,7 lần, sai 0,76%**; phân vị chính xác hết RAM | ✅ (thời gian đo khi máy tải cao) |
+| E6 | Truy vấn xấp xỉ có đáng không? | Đếm phân biệt trên 420M giá trị: **nhanh hơn 8,7 lần, sai 0,76%**; phân vị chính xác hết RAM | ✅ (đo lại trên máy rảnh 12/11) |
 | E7 | Phát hiện được FTX không? | 8/11 và 9/11/2022 là **top-2 ngày** của tháng; kiểm chứng độc lập trên LUNA (9–12/5/2022) chiếm trọn **top 1–4**; stream trùng batch **111/111** báo động | ✅ |
 | C5 | Chọn nguồn thế nào? | Cửa sổ 24 giờ đủ 3 nguồn: Stream đầy đủ/khớp 100%, Batch T+1 khớp 100%; 100% nến hội tụ, TTC p50 = **0,0 s**, p95 = **2,9 s** | ✅ |
 
@@ -31,7 +31,7 @@ Xem trực quan:
 | Lưu lượng live | trung bình 18,6 bản tin/s, p95 58/s |
 | Raw archive | 665 255+ bản tin, offset Kafka liên tục, không thiếu/trùng |
 | Công nghệ | PySpark 4.0.4, Kafka 3.9 (KRaft), Postgres 16, Grafana 11, Docker Compose |
-| Test | **22/22 xanh** ngày 08/11 (contract C1, batch = streaming C2, taxonomy C3, TTC/latency C5, linkage C4, mzscore E7) |
+| Test | **23/23 xanh** ngày 11/11 (contract C1, batch = streaming C2, taxonomy C3, TTC/latency C5, linkage C4, mzscore E7) |
 
 ### Thống kê mô tả 5 cặp × 4 tháng (`experiments/descriptive_stats.py`)
 
@@ -54,20 +54,18 @@ Tổng cộng **418 156 831 bản ghi `aggTrades`** (gộp từ **1 049 045 915 
 
 ## E1 · Ablation schema drift — chứng minh C1
 
-| Cặp | Kỳ | Phiên bản | Bản ghi | % mốc vô lý | % nến đúng |
-|---|---|---|---|---|---|
-| SOLUSDT | 2022-11 | naive | 7 077 107 | 0% | 100% |
-| SOLUSDT | 2022-11 | drift-aware | 7 077 107 | 0% | 100% |
-| SOLUSDT | 2026-08 | naive | 4 977 119 | **100%** | **0%** |
-| SOLUSDT | 2026-08 | drift-aware | 4 977 119 | 0% | 100% |
-| XRPUSDT | 2022-11 | naive | 4 776 769 | 0% | 100% |
-| XRPUSDT | 2022-11 | drift-aware | 4 776 769 | 0% | 100% |
-| XRPUSDT | 2026-08 | naive | 6 016 728 | **100%** | **0%** |
-| XRPUSDT | 2026-08 | drift-aware | 6 016 728 | 0% | 100% |
+| Kỳ | Phiên bản | Bản ghi (5 cặp) | % mốc vô lý | % nến đúng (5 cặp) |
+|---|---|---|---|---|
+| 2022-11 (ms) | naive | 214 295 686 | 0% | 100% (216 000 nến) |
+| 2022-11 (ms) | drift-aware | 214 295 686 | 0% | 100% |
+| 2026-06..08 (µs) | naive | 203 861 145 | **100%** | **0%** (662 400 nến) |
+| 2026-06..08 (µs) | drift-aware | 203 861 145 | 0% | **100%** |
+
+Mọi ô của 5 cặp × 4 tháng đều đúng hệt quy luật trên, không có ngoại lệ (40/40 dòng trong `results/e1/ablation.csv`). Chạy lại ngày 11/11/2026 trên 418 156 831 bản ghi, mất khoảng 27 phút; hình `results/e1/ablation.png`.
 
 - Drift xảy ra ở hai chỗ: theo thời gian (CSV 2022 dùng ms, CSV 2026 dùng µs) và **giữa các nguồn** (WS JSON vẫn dùng ms, CSV 2026 dùng µs).
 - Một hàm suy đơn vị theo độ lớn giá trị xử lý được cả hai; contract test gồm 3 nguồn × 2 giai đoạn + giây/ns (13 case).
-- File: `results/e1/ablation.csv`. Chưa có hình; dùng bảng trên.
+- File: `results/e1/ablation.csv`, hình `results/e1/ablation.png` (`experiments/e1_plot.py`).
 
 ## E2 · Batch vs official — chứng minh C2, C3
 
@@ -153,18 +151,20 @@ Hình: `results/e5/pr_curve.png`, `results/e5/blocking_cost.png`.
 
 ## E6 · Truy vấn xấp xỉ
 
-419,8M dòng, theo symbol (máy đang tải cao, load 25–30):
+419,8M dòng, theo symbol, **đo lại trên máy rảnh ngày 12/11** (tốt nhất trong 3 lần; lượt cũ khi máy bận giữ ở `results/e6/approx_local.csv`):
 
 | Phép tính | Chính xác | Xấp xỉ tốt nhất | Sai số |
 |---|---|---|---|
-| Đếm phân biệt `agg_id` (420M giá trị) | 234,7 s | **18,4 s** (rsd 0,01) | 0,76% |
-| Đếm phân biệt `price` (3M giá trị) | 90,0 s | 93,3 s (rsd 0,01) | 1,6% |
-| Phân vị notional (USDT) | **OutOfMemoryError** (6 GB) | 101,8 s (relErr 0,001) | thứ hạng 0,047% |
+| Đếm phân biệt `agg_id` (420M giá trị) | 122,7 s | **14,1 s** (rsd 0,01) · **8,7 lần** | 0,76% |
+| Đếm phân biệt `price` (3M giá trị) | **11,3 s** | 14,6 s (rsd 0,01) | 1,6% |
+| Phân vị notional (USDT) | **OutOfMemoryError** (6 GB) | 40,4 s (relErr 0,001) | thứ hạng 0,047% |
 
-- Xấp xỉ chỉ đáng dùng khi số giá trị phân biệt lớn; với cột ít giá trị phân biệt, đếm chính xác đã rẻ.
+- Xấp xỉ chỉ đáng dùng khi số giá trị phân biệt lớn; với `price`, đếm chính xác nhanh hơn **mọi** cấu hình xấp xỉ.
+- Thời gian phân vị gần như không phụ thuộc relErr (39–56 s), nên relErr 0,001 gần như miễn phí.
 - Sai số thứ hạng luôn nằm trong cam kết `relErr`, nhưng sai số **giá trị** có thể rất lớn với dữ liệu đuôi dày (59 042% ở relErr 0,01). Nên dùng relErr ≤ 0,001.
+- Lượt cũ khi máy bận báo 12,7 lần; con số đó bị phóng đại vì bản chính xác (nặng shuffle) chịu tải máy nhiều hơn.
 
-Hình: `results/e6/error_vs_time_local.png`.
+Hình: `results/e6/error_vs_time_idle.png`. Báo cáo: [11-bao-cao-mang-3.md](11-bao-cao-mang-3.md).
 
 ## E7 · Phát hiện bất thường + replay FTX
 
@@ -237,9 +237,8 @@ Kết quả trên đã chốt hoàn chỉnh cho cả ba nguồn (`stream`, `stre
 
 ## Hạn chế cần nêu trong báo cáo
 
-1. E1 mới chạy 2/5 cặp (kết luận khó thay đổi).
 2. E3 dùng cửa sổ 2 giờ trên một VM Azure; validator hiệu năng chưa đạt vì micro-batch p95 vượt trigger 6–12%.
-3. E6 và stress test đo khi máy tải cao (load 20–48), nên con số thời gian chỉ mang tính tương đối.
+3. Stress test E7 đo khi máy tải cao (load 20–48), nên con số thời gian chỉ mang tính tương đối. E6 đã đo lại trên máy rảnh.
 4. E7 không có nhãn chuẩn nên chỉ đánh giá theo sự kiện (FTX 11/2022 và kiểm chứng ngoài mẫu trên LUNA 5/2022) cùng proxy báo động giả ở kỳ yên 2026.
 5. C5 đã đo trọn vẹn 24 giờ cho cả ba nguồn (`stream`, `stream:update`, `batch` đối soát với `official`), nhưng mọi job chạy trên một máy nên chưa đại diện cho cụm production.
 6. Mọi thứ chạy trên **một máy** 16 GB (local[*]); chưa thử cụm nhiều worker.

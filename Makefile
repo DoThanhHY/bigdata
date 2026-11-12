@@ -2,7 +2,7 @@
 PY ?= python
 export PYTHONPATH := src
 
-.PHONY: help up up-all down ps logs test test-docker download batch official e2 live-status psql results
+.PHONY: help up up-all down ps logs test test-docker download batch official e2 live-status psql results demo
 
 help:
 	@grep -E '^[a-z0-9_-]+:.*## ' $(MAKEFILE_LIST) | awk -F':.*## ' '{printf "  %-14s %s\n", $$1, $$2}'
@@ -52,3 +52,6 @@ psql: ## Mở psql
 results: ## Nạp results/*.csv vào Postgres + dựng lại dashboard "Kết quả thí nghiệm"
 	$(PY) experiments/publish_results.py
 	$(PY) grafana/build_results_dashboard.py
+
+demo: ## Mở Demo Console (http://localhost:8088): live 3 nguồn + nút gây sự cố E4
+	$(PY) -m bdi.demo.server --port 8088

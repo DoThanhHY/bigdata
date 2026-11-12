@@ -182,7 +182,7 @@ SELECT symbol, disconnected_at, backfilled, reason FROM ws_gaps WHERE reason = '
 
 ### Mảng 3 · Ghép mờ, truy vấn xấp xỉ (E5, E6)
 
-**Đã xong:** E5 (F1 0,995 với ghép giữ thứ tự), E6 (đếm phân biệt nhanh hơn 12,7 lần; phân vị chính xác hết bộ nhớ).
+**Đã xong:** E5 (F1 0,995 với ghép giữ thứ tự), E6 (đếm phân biệt nhanh hơn 8,7 lần khi đo trên máy rảnh; phân vị chính xác hết bộ nhớ).
 
 #### B3.1 E5: biến thể dùng thời điểm giao dịch (nên làm, ~5 phút)
 

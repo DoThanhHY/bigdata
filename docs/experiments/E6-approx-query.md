@@ -59,9 +59,22 @@ Với cột nhiều giá trị phân biệt, HyperLogLog++ **nhanh hơn 12,7 l�
 - Sai số **giá trị** có thể rất lớn vì notional có đuôi cực dày (lệch 1% thứ hạng quanh p99 đổi giá trị nhiều bậc). Kết luận cho báo cáo: với dữ liệu đuôi dày, phải đặt `relErr` nhỏ (≤ 0,001) hoặc chỉ dùng xấp xỉ cho trung vị.
 - (*) Thời gian relErr 0,01/0,05 dài hơn relErr 0,001 là do tải máy dao động mạnh lúc đo, không phản ánh chi phí thuật toán. Cần đo lại trên máy rảnh.
 
+## Đo lại trên máy rảnh (12/11/2026)
+
+Tắt pipeline live và mọi job khác, `--repeats 3 --tag idle` → `results/e6/approx_idle.csv`, `results/e6/error_vs_time_idle.png`, log tải `results/e6/logs/`. Sai số giữ nguyên; thời gian:
+
+| Phép tính | Chính xác | rsd/relErr nhỏ nhất | Tăng tốc |
+|---|---|---|---|
+| Đếm `agg_id` | 122,7 s | 14,1 s (rsd 0,01, sai 0,76%) | **8,7 lần** (lượt cũ báo 12,7 lần do máy bận) |
+| Đếm `price` | **11,3 s** | 14,6 s (rsd 0,01) | xấp xỉ **chậm hơn** ở mọi rsd |
+| Phân vị notional | OOM | 40,4 s (relErr 0,001) | relErr 0,01: 55,5 s · 0,05: 39,1 s |
+
+- Tiêu chí "relErr nhanh dần theo 0,05 < 0,01 < 0,001" **không đạt**: thời gian phân vị không phụ thuộc có hệ thống vào relErr, vì chi phí chủ yếu là quét dữ liệu. Vì vậy relErr 0,001 gần như không tốn thêm thời gian.
+- Báo cáo đầy đủ: [11-bao-cao-mang-3.md](../11-bao-cao-mang-3.md).
+
 ## Checklist
 
 - [x] Bảng sai số và thời gian
 - [x] Nhận xét: sai số thực tế so với `rsd` lý thuyết
-- [ ] Đo lại thời gian trên máy rảnh
+- [x] Đo lại thời gian trên máy rảnh (12/11, xem mục trên)
 - [ ] (mở rộng) so sánh 1 worker và 2 worker

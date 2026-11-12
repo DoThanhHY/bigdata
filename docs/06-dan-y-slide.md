@@ -149,6 +149,7 @@
   1. Grafana live: giá 3 nguồn trùng nhau
   2. `chaos.sh ws_netcut`: luồng dừng
   3. Tự nối lại, backfill, nến vẫn khớp official
+- Màn hình: **Demo Console** (`make demo`, http://localhost:8088)
 - Kịch bản chi tiết: [04-demo.md](04-demo.md)
 - **Phương án dự phòng:** quay sẵn video 60 s trước buổi bảo vệ, phòng khi mạng hội trường chặn Binance.
 - **Thời gian:** 3–5 phút
@@ -168,13 +169,13 @@
 
 ## Slide 13 · E6: Truy vấn xấp xỉ
 
-- **Tiêu đề:** Xấp xỉ nhanh gấp 12,7 lần, nhưng chỉ khi số giá trị phân biệt lớn
-- Bảng 3 dòng:
-  - `agg_id` 420M giá trị: 234,7 s → **18,4 s**, sai 0,76%
-  - `price` 3M giá trị: 90 s → 93 s, xấp xỉ **không** đáng dùng
-  - Phân vị chính xác: **hết RAM**; xấp xỉ 102 s
-- Bài học: sai số thứ hạng luôn trong cam kết, nhưng sai số giá trị có thể rất lớn với dữ liệu đuôi dày.
-- Hình (tùy chọn): `results/e6/error_vs_time_local.png`
+- **Tiêu đề:** Xấp xỉ nhanh gấp 8,7 lần, nhưng chỉ khi số giá trị phân biệt lớn
+- Bảng 3 dòng (đo lại trên máy rảnh 12/11):
+  - `agg_id` 420M giá trị: 122,7 s → **14,1 s**, sai 0,76%
+  - `price` 3M giá trị: chính xác **11,3 s**, xấp xỉ 14,6–17,1 s → **không** đáng dùng
+  - Phân vị chính xác: **hết RAM**; xấp xỉ 40 s, relErr gần như không đổi thời gian
+- Bài học: sai số thứ hạng luôn trong cam kết, nhưng sai số giá trị có thể rất lớn với dữ liệu đuôi dày → dùng relErr ≤ 0,001 (gần như miễn phí).
+- Hình (tùy chọn): `results/e6/error_vs_time_idle.png`
 - **Thời gian:** 1 phút
 
 ## Slide 14 · E7: Phát hiện FTX (batch)
@@ -258,7 +259,8 @@
 
 ## Việc cần làm để hoàn thiện slide
 
-- [ ] Vẽ sơ đồ kiến trúc (slide 4)
-- [ ] Tạo biểu đồ cột E1 từ `results/e1/ablation.csv` (slide 6), hoặc dùng bảng
-- [ ] Quay video demo dự phòng 60 s (slide 11)
-- [x] Bổ sung dòng Batch vào C5 sau T+1; cập nhật nếu chạy thêm E1 đủ 5 cặp hoặc E7 trên LUNA
+- [x] Vẽ sơ đồ kiến trúc (slide 4) → `results/arch/architecture.png` (`experiments/arch_diagram.py`)
+- [x] Tạo biểu đồ cột E1 từ `results/e1/ablation.csv` (slide 6) → `results/e1/ablation.png` (`experiments/e1_plot.py`)
+- [x] Quay video demo dự phòng (slide 11) → `results/demo/demo_mang2_90s.mp4`
+- [x] Nội dung chi tiết từng slide (chữ + lời nói) → [10-noi-dung-slide.md](10-noi-dung-slide.md)
+- [x] Bổ sung dòng Batch vào C5 sau T+1; E1 đủ 5 cặp (11/11) và E7 trên LUNA đã cập nhật

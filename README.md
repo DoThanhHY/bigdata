@@ -20,6 +20,9 @@ Kế hoạch gốc nằm ở [`plan.md`](plan.md). Repo này là phần hiện t
 | 7 | [docs/05-ket-qua.md](docs/05-ket-qua.md) | **Tổng hợp toàn bộ số liệu** E1–E7, C5 |
 | 8 | [docs/06-dan-y-slide.md](docs/06-dan-y-slide.md) | **Dàn ý slide** chi tiết + câu hỏi hội đồng |
 | 9 | [docs/07-huong-dan-thanh-vien.md](docs/07-huong-dan-thanh-vien.md) | **Việc của từng thành viên**: lệnh chạy, tiêu chí đạt, lịch |
+| 10 | [docs/09-bao-cao-c1-c2.md](docs/09-bao-cao-c1-c2.md) | **Báo cáo Mảng 1: C1, C2, C6** |
+| 11 | [docs/10-noi-dung-slide.md](docs/10-noi-dung-slide.md) | **Nội dung slide chi tiết**: chữ trên slide + lời nói |
+| 12 | [docs/11-bao-cao-mang-3.md](docs/11-bao-cao-mang-3.md) | **Báo cáo Mảng 3: C4, E6** |
 
 ## Kiến trúc tóm tắt
 
@@ -36,7 +39,8 @@ Binance WebSocket  ──►  ws_producer ─► Kafka ─► stream_candles ─
                     ws_gaps, chaos_events, reconcile_results, anomalies
                           │
                           ├─► reconcile/compare + taxonomy (C3) ─► results/
-                          └─► Grafana dashboard (http://localhost:3000)
+                          ├─► Grafana dashboard (http://localhost:3000)
+                          └─► Demo Console (http://localhost:8088, `make demo`)
 ```
 
 ## Bắt đầu nhanh
@@ -51,6 +55,7 @@ make up                       # Kafka + Postgres + Grafana
 make test                     # hoặc: make test-docker
 make up-all                   # bật thêm pipeline live (WS -> Kafka -> Spark -> Postgres)
 make live-status              # sau khoảng 2 phút sẽ thấy nến source='stream'
+make demo                     # Demo Console http://localhost:8088 (live + nút gây sự cố)
 ```
 
 ## Bản đồ code
@@ -73,6 +78,7 @@ src/bdi/
   reconcile/ compare.py · taxonomy.py
   linkage/   fuzzy.py
   anomaly/   mzscore.py
+  demo/      server.py · static/index.html   (Demo Console)
 experiments/ e1 … e7, c5, e4_chaos/chaos.sh
 tests/       contract test C1, test C2 (batch = streaming), C3, C4, E7
 sql/init.sql · docker-compose.yml · docker/Dockerfile · grafana/

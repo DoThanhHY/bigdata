@@ -75,4 +75,4 @@ Kết luận: backfill chạy trước tin live (P1) giữ watermark đứng yê
 - [x] 4 kịch bản streaming + batch_rerun: 0 nến thiếu/thừa/lệch; batch idempotent
 - [x] Bảng incidents + timeline
 - [x] Sự cố tự nhiên: máy ngủ 5,7 giờ + 3 lần Pong timeout. Phục hồi 100% (xem trên)
-- [ ] Ít nhất một lần ngắt tự nhiên do mốc 24h (`reason = proactive_24h`) trong `ws_gaps`
+- [x] Ít nhất một lần ngắt tự nhiên do mốc 24h (`reason = proactive_24h`) trong `ws_gaps`: 08/11 11:08 UTC, 5 symbol, backfill 58 bản tin (xem 02-roadmap.md)

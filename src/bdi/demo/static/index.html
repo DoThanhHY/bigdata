@@ -1,0 +1,385 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>BDI Demo Console</title>
+<style>
+:root {
+  --bg: #f6f5f2; --surface: #fcfcfb; --border: #e4e3df; --text: #0b0b0b; --text2: #52514e; --muted: #8a8984;
+  --blue: #2a78d6; --orange: #eb6834; --green: #1baf7a; --red: #e34948; --amber: #eda100;
+  --ok-bg: #e5f6ef; --bad-bg: #fdece4; --grid: #e4e3df;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #111110; --surface: #1a1a19; --border: #2e2d2b; --text: #f1f0ec; --text2: #b5b3ad; --muted: #7b7a75;
+    --ok-bg: #12352a; --bad-bg: #3d2117; --grid: #2e2d2b;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #111110; --surface: #1a1a19; --border: #2e2d2b; --text: #f1f0ec; --text2: #b5b3ad; --muted: #7b7a75;
+  --ok-bg: #12352a; --bad-bg: #3d2117; --grid: #2e2d2b;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--text); font: 14px/1.45 system-ui, -apple-system, "Segoe UI", sans-serif; }
+header { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 20px; padding: 14px 20px; border-bottom: 1px solid var(--border); background: var(--surface); }
+header h1 { font-size: 18px; margin: 0; }
+header .sub { color: var(--text2); font-size: 13px; }
+header .right { margin-left: auto; display: flex; gap: 14px; align-items: center; font-size: 13px; }
+a { color: var(--blue); text-decoration: none; }
+a:hover { text-decoration: underline; }
+.clock { font-variant-numeric: tabular-nums; color: var(--text2); }
+main { padding: 16px 20px 40px; display: grid; grid-template-columns: minmax(0, 1fr) 360px; gap: 16px; max-width: 1500px; margin: 0 auto; }
+@media (max-width: 1000px) { main { grid-template-columns: minmax(0, 1fr); padding: 12px 16px 32px; } }
+.card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; min-width: 0; }
+.card h2 { font-size: 13px; text-transform: uppercase; letter-spacing: .04em; color: var(--text2); margin: 0 0 10px; font-weight: 600; }
+.stack { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 999px; border: 1px solid var(--border); font-size: 12.5px; }
+.dot { width: 8px; height: 8px; border-radius: 50%; background: var(--muted); }
+.dot.ok { background: var(--green); } .dot.bad { background: var(--red); } .dot.warn { background: var(--amber); }
+.kpis { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+@media (max-width: 700px) { .kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.kpi .v { font-size: 30px; font-weight: 650; font-variant-numeric: tabular-nums; line-height: 1.15; }
+.kpi .l { color: var(--text2); font-size: 12.5px; }
+.kpi .v.ok { color: var(--green); } .kpi .v.bad { color: var(--orange); }
+.tabs { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
+.tabs button, .btn { font: inherit; cursor: pointer; border: 1px solid var(--border); background: var(--surface); color: var(--text); border-radius: 7px; padding: 5px 11px; }
+.tabs button.on { background: var(--blue); border-color: var(--blue); color: #fff; }
+.legend { display: flex; gap: 16px; font-size: 12.5px; color: var(--text2); flex-wrap: wrap; margin-top: 6px; }
+.sw { display: inline-block; width: 14px; height: 3px; vertical-align: middle; margin-right: 5px; border-radius: 2px; }
+canvas { width: 100%; display: block; }
+.btn.chaos { width: 100%; text-align: left; padding: 9px 12px; margin-bottom: 8px; display: block; }
+.btn.chaos b { display: block; }
+.btn.chaos span { color: var(--text2); font-size: 12.5px; }
+.btn.chaos:hover:not(:disabled) { border-color: var(--orange); }
+.btn:disabled { opacity: .5; cursor: not-allowed; }
+.row { display: flex; gap: 8px; align-items: center; margin-bottom: 10px; font-size: 13px; color: var(--text2); }
+select { font: inherit; background: var(--surface); color: var(--text); border: 1px solid var(--border); border-radius: 6px; padding: 3px 6px; }
+pre.log { background: var(--bg); border: 1px solid var(--border); border-radius: 7px; padding: 8px 10px; font: 12px/1.45 ui-monospace, SFMono-Regular, Menlo, monospace; max-height: 190px; overflow: auto; margin: 6px 0 0; white-space: pre-wrap; word-break: break-word; }
+table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+th, td { text-align: left; padding: 5px 6px; border-bottom: 1px solid var(--border); vertical-align: top; }
+th { color: var(--text2); font-weight: 600; }
+td.num { font-variant-numeric: tabular-nums; }
+.tag { display: inline-block; padding: 1px 7px; border-radius: 5px; font-size: 11.5px; font-weight: 600; }
+.tag.ok { background: var(--ok-bg); color: var(--green); } .tag.bad { background: var(--bad-bg); color: var(--orange); }
+.empty { color: var(--muted); font-size: 13px; }
+.steps { margin: 0; padding-left: 18px; color: var(--text2); font-size: 13px; }
+.steps li { margin-bottom: 3px; }
+.err { color: var(--red); font-size: 13px; }
+.scroll { overflow-x: auto; }
+</style>
+</head>
+<body>
+<header>
+  <h1>BDI · Demo Console</h1>
+  <span class="sub">WebSocket → Kafka → Spark Streaming → Postgres, đối soát tuyệt đối với nến official của Binance</span>
+  <div class="right">
+    <span class="clock" id="clock">--:--:-- UTC</span>
+    <a href="http://localhost:3000/d/bdi-live" target="_blank" rel="noopener">Grafana live</a>
+    <a href="http://localhost:3000/d/bdi-results" target="_blank" rel="noopener">Kết quả thí nghiệm</a>
+    <button class="btn" id="theme" title="Đổi giao diện sáng/tối">◐</button>
+  </div>
+</header>
+
+<main>
+  <div class="stack">
+    <section class="card">
+      <h2>Hạ tầng</h2>
+      <div class="chips" id="containers"><span class="empty">Đang tải…</span></div>
+      <div class="err" id="err"></div>
+    </section>
+
+    <section class="kpis">
+      <div class="card kpi"><div class="v" id="k-lag">–</div><div class="l" id="k-lag-l">Độ trễ ghi nến stream mới nhất</div></div>
+      <div class="card kpi"><div class="v" id="k-match">–</div><div class="l" id="k-match-l">Nến stream khớp tuyệt đối official</div></div>
+      <div class="card kpi"><div class="v" id="k-bad">–</div><div class="l">Nến thiếu hoặc lệch<br>(kèm nhãn nguyên nhân)</div></div>
+      <div class="card kpi"><div class="v" id="k-bf">–</div><div class="l" id="k-bf-l">Bản ghi backfill ở sự cố gần nhất</div></div>
+    </section>
+
+    <section class="card">
+      <h2>Giá đóng cửa 1 phút · stream vs official</h2>
+      <div class="tabs" id="tabs"></div>
+      <canvas id="price" height="300"></canvas>
+      <div class="legend">
+        <span><i class="sw" style="background:var(--blue)"></i>Stream (Spark, watermark 5 s)</span>
+        <span><i class="sw" style="background:var(--text2)"></i>Official (REST klines của Binance)</span>
+        <span><i class="sw" style="background:var(--orange);height:10px;opacity:.35"></i>Vùng sự cố (mất kết nối / chaos)</span>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>Đối soát từng phút · 5 cặp × <span id="win-l">30</span> phút gần nhất</h2>
+      <div class="row">
+        Cửa sổ
+        <select id="win"><option>15</option><option selected>30</option><option>60</option><option>180</option></select>
+        phút · mỗi ô là một nến; xanh = khớp cả 6 trường O·H·L·C·V·trades
+      </div>
+      <canvas id="strip" height="150"></canvas>
+      <div class="legend">
+        <span><i class="sw" style="background:var(--green);height:10px"></i>Khớp tuyệt đối</span>
+        <span><i class="sw" style="background:var(--orange);height:10px"></i>Thiếu / lệch</span>
+        <span><i class="sw" style="background:var(--border);height:10px"></i>Chưa có official để so</span>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>Nến thiếu hoặc lệch</h2>
+      <div class="scroll"><table id="bad"><tbody><tr><td class="empty">Chưa có</td></tr></tbody></table></div>
+    </section>
+  </div>
+
+  <div class="stack">
+    <section class="card">
+      <h2>Gây sự cố (E4)</h2>
+      <div class="row">Thời gian sự cố
+        <select id="down"><option value="20">20 s</option><option value="30" selected>30 s</option><option value="60">60 s</option></select>
+      </div>
+      <button class="btn chaos" data-s="ws_netcut"><b>Rút dây mạng</b><span>docker pause bộ nhận WS: TCP treo, Binance tự ngắt</span></button>
+      <button class="btn chaos" data-s="ws_kill"><b>Kill bộ nhận WebSocket</b><span>docker kill ws-producer rồi bật lại</span></button>
+      <button class="btn chaos" data-s="spark_kill"><b>Kill Spark driver</b><span>phục hồi từ checkpoint + offset Kafka</span></button>
+      <button class="btn chaos" data-s="kafka_restart"><b>Restart Kafka broker</b><span>bản tin đã ghi không được mất</span></button>
+      <pre class="log" id="log">Chưa chạy kịch bản nào.</pre>
+    </section>
+
+    <section class="card">
+      <h2>Kỳ vọng sau sự cố</h2>
+      <ol class="steps">
+        <li>Đường stream dừng, độ trễ tăng.</li>
+        <li>Bộ nhận tự nối lại, gọi REST <code>aggTrades?fromId=</code> để lấp khoảng trống của <b>cả 5 cặp</b> trước khi đẩy tin live.</li>
+        <li>Spark ghi tiếp; upsert theo khóa nên không trùng.</li>
+        <li>Ô đối soát vẫn xanh: 0 nến thiếu, thừa hoặc lệch.</li>
+      </ol>
+    </section>
+
+    <section class="card">
+      <h2>Nhật ký sự cố</h2>
+      <div class="scroll"><table id="events"><tbody><tr><td class="empty">Đang tải…</td></tr></tbody></table></div>
+    </section>
+  </div>
+</main>
+
+<script>
+const SYMS = ["BTCUSDT", "ETHUSDT", "BNBUSDT", "SOLUSDT", "XRPUSDT"];
+let sym = "BTCUSDT", win = 30, lastEvents = [], lastRec = null, lastCandles = null;
+const $ = (id) => document.getElementById(id);
+const css = (v) => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+const fmtT = (iso) => iso ? new Date(iso).toISOString().slice(11, 19) : "–";
+const fmtTm = (iso) => iso ? new Date(iso).toISOString().slice(11, 16) : "–";
+const nf = new Intl.NumberFormat("vi-VN");
+
+async function api(path, opt) {
+  const r = await fetch(path, opt);
+  const j = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error(j.error || r.statusText);
+  return j;
+}
+
+// ---------- theme
+try { const t = localStorage.getItem("bdi-theme"); if (t) document.documentElement.dataset.theme = t; } catch (e) {}
+$("theme").onclick = () => {
+  const cur = document.documentElement.dataset.theme ||
+    (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+  const nxt = cur === "dark" ? "light" : "dark";
+  document.documentElement.dataset.theme = nxt;
+  try { localStorage.setItem("bdi-theme", nxt); } catch (e) {}
+  redraw();
+};
+
+// ---------- tabs
+SYMS.forEach((s) => {
+  const b = document.createElement("button");
+  b.textContent = s.replace("USDT", "");
+  b.onclick = () => { sym = s; [...$("tabs").children].forEach((x) => x.classList.toggle("on", x === b)); loadCandles(); };
+  if (s === sym) b.classList.add("on");
+  $("tabs").appendChild(b);
+});
+$("win").onchange = (e) => { win = +e.target.value; $("win-l").textContent = win; tick(); };
+
+// ---------- canvas helpers
+function setup(cv) {
+  const dpr = window.devicePixelRatio || 1, w = cv.clientWidth, h = +cv.getAttribute("height");
+  cv.width = w * dpr; cv.height = h * dpr; cv.style.height = h + "px";
+  const ctx = cv.getContext("2d"); ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  ctx.font = "11px system-ui, sans-serif";
+  return { ctx, w, h };
+}
+
+function incidentWindows() {
+  const out = [];
+  for (const e of lastEvents) {
+    if (e.kind === "ws_gap" && e.note !== "paused_by_user") out.push([new Date(e.at), new Date(e.until || Date.now())]);
+  }
+  const chaos = lastEvents.filter((e) => e.kind === "chaos").slice().reverse();
+  const open = {};
+  for (const e of chaos) {
+    if (e.note.startsWith("inject")) open[e.symbol] = new Date(e.at);
+    else if (e.note.startsWith("recover") && open[e.symbol]) { out.push([open[e.symbol], new Date(e.at)]); delete open[e.symbol]; }
+  }
+  for (const k in open) out.push([open[k], new Date()]);
+  return out;
+}
+
+function drawPrice() {
+  const cv = $("price"), { ctx, w, h } = setup(cv);
+  const d = lastCandles;
+  ctx.clearRect(0, 0, w, h);
+  if (!d || (!d.stream.length && !d.official.length)) {
+    ctx.fillStyle = css("--muted"); ctx.fillText("Chưa có nến trong cửa sổ này", 12, 24); return;
+  }
+  const all = [...d.stream, ...d.official];
+  const t0 = Date.now() - win * 60000, t1 = Date.now();
+  let lo = Math.min(...all.map((r) => r.close)), hi = Math.max(...all.map((r) => r.close));
+  const pad = (hi - lo) * 0.08 || hi * 0.0005; lo -= pad; hi += pad;
+  const L = 62, R = 10, T = 10, B = 24;
+  const X = (t) => L + (t - t0) / (t1 - t0) * (w - L - R);
+  const Y = (v) => T + (hi - v) / (hi - lo) * (h - T - B);
+  // vùng sự cố
+  ctx.fillStyle = css("--orange"); ctx.globalAlpha = 0.16;
+  for (const [a, b] of incidentWindows()) {
+    if (b < t0) continue;
+    const xa = Math.max(L, X(+a)), xb = Math.min(w - R, X(+b));
+    if (xb > xa) ctx.fillRect(xa, T, Math.max(2, xb - xa), h - T - B);
+  }
+  ctx.globalAlpha = 1;
+  // lưới
+  ctx.strokeStyle = css("--grid"); ctx.fillStyle = css("--text2"); ctx.lineWidth = 1;
+  for (let i = 0; i <= 4; i++) {
+    const v = lo + (hi - lo) * i / 4, y = Y(v);
+    ctx.beginPath(); ctx.moveTo(L, y); ctx.lineTo(w - R, y); ctx.stroke();
+    ctx.textAlign = "right"; ctx.fillText(v.toLocaleString("en-US", { maximumFractionDigits: v < 10 ? 4 : 2 }), L - 6, y + 4);
+  }
+  ctx.textAlign = "center";
+  const step = win <= 30 ? 5 : win <= 60 ? 10 : 30;
+  const first = Math.ceil(t0 / (step * 60000)) * step * 60000;
+  for (let t = first; t <= t1; t += step * 60000) ctx.fillText(new Date(t).toISOString().slice(11, 16), X(t), h - 6);
+  // official: chấm + đường mảnh; stream: đường xanh
+  const line = (rows, color, width, dash) => {
+    ctx.strokeStyle = color; ctx.lineWidth = width; ctx.setLineDash(dash); ctx.beginPath();
+    let prev = null;
+    rows.forEach((r) => {
+      const t = +new Date(r.minute), x = X(t + 30000), y = Y(r.close);
+      if (prev !== null && t - prev > 61000) ctx.moveTo(x, y); else if (prev === null) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+      prev = t;
+    });
+    ctx.stroke(); ctx.setLineDash([]);
+  };
+  line(d.official, css("--text2"), 1.5, [4, 3]);
+  line(d.stream, css("--blue"), 2.2, []);
+  ctx.fillStyle = css("--text2");
+  d.official.forEach((r) => { ctx.beginPath(); ctx.arc(X(+new Date(r.minute) + 30000), Y(r.close), 2.2, 0, 7); ctx.fill(); });
+}
+
+function drawStrip() {
+  const cv = $("strip"), { ctx, w, h } = setup(cv);
+  ctx.clearRect(0, 0, w, h);
+  const L = 44, R = 6, T = 4, B = 20, rows = SYMS.length;
+  const now = Date.now(), endMin = Math.floor(now / 60000) * 60000, n = win;
+  const cw = (w - L - R) / n, ch = (h - T - B) / rows;
+  const status = {};
+  if (lastRec) {
+    for (const s of SYMS) status[s] = {};
+    lastRec._cells.forEach((c) => { status[c.symbol][c.t] = c.ok; });
+  }
+  ctx.fillStyle = css("--text2"); ctx.textAlign = "right";
+  SYMS.forEach((s, i) => {
+    ctx.fillStyle = css("--text2"); ctx.fillText(s.replace("USDT", ""), L - 6, T + i * ch + ch / 2 + 4);
+    for (let k = 0; k < n; k++) {
+      const t = endMin - (n - k) * 60000;
+      const st = status[s] ? status[s][t] : undefined;
+      ctx.fillStyle = st === true ? css("--green") : st === false ? css("--orange") : css("--border");
+      ctx.fillRect(L + k * cw + 0.5, T + i * ch + 1, Math.max(1, cw - 1.5), ch - 3);
+    }
+  });
+  ctx.textAlign = "center"; ctx.fillStyle = css("--text2");
+  const step = n <= 30 ? 5 : n <= 60 ? 10 : 30;
+  for (let k = 0; k < n; k += step) {
+    const t = endMin - (n - k) * 60000;
+    ctx.fillText(new Date(t).toISOString().slice(11, 16), L + k * cw, h - 5);
+  }
+}
+
+function redraw() { drawPrice(); drawStrip(); }
+window.addEventListener("resize", redraw);
+
+// ---------- data loaders
+async function loadCandles() {
+  try { lastCandles = await api(`/api/candles?symbol=${sym}&minutes=${win}`); drawPrice(); }
+  catch (e) { $("err").textContent = e.message; }
+}
+
+async function tick() {
+  try {
+    const [st, rec, ev, ch] = await Promise.all([
+      api("/api/status"), api(`/api/reconcile?minutes=${win}`), api("/api/events"), api("/api/chaos")]);
+    $("err").textContent = "";
+    // containers
+    $("containers").innerHTML = st.containers.map((c) => {
+      const cls = c.state === "running" ? (c.status.includes("unhealthy") ? "warn" : "ok") : c.state === "paused" ? "warn" : "bad";
+      return `<span class="chip" title="${c.status}"><i class="dot ${cls}"></i>${c.service}${c.state !== "running" ? " · " + c.state : ""}</span>`;
+    }).join("");
+    // lag
+    const fs = st.freshness.find((f) => f.source === "stream");
+    if (fs) {
+      const stalled = (Date.now() - (+new Date(fs.last_minute) + 60000)) / 1000;  // > ~75 s nghĩa là thiếu phút
+      if (stalled > 80) {
+        $("k-lag").textContent = stalled < 3600 ? `dừng ${stalled.toFixed(0)} s` : "dừng";
+        $("k-lag").className = "v bad";
+        $("k-lag-l").innerHTML = `Luồng stream chưa ra nến mới<br>(nến cuối ${fmtTm(fs.last_minute)})`;
+      } else {
+        $("k-lag").textContent = `${Math.max(0, fs.latency_s).toFixed(1)} s`;
+        $("k-lag").className = "v ok";
+        $("k-lag-l").innerHTML = `Độ trễ ghi nến stream mới nhất<br>(${fmtTm(fs.last_minute)}, tính từ lúc hết phút)`;
+      }
+    } else { $("k-lag").textContent = "–"; }
+    // reconcile
+    $("k-match").textContent = rec.total ? `${nf.format(rec.match)}/${nf.format(rec.total)}` : "–";
+    $("k-match").className = "v " + (rec.total && rec.match === rec.total ? "ok" : rec.total ? "bad" : "");
+    $("k-match-l").textContent = `Nến stream khớp tuyệt đối official (${win} phút)`;
+    $("k-bad").textContent = rec.total ? nf.format(rec.total - rec.match) : "–";
+    $("k-bad").className = "v " + (rec.total && rec.total === rec.match ? "ok" : rec.total ? "bad" : "");
+    rec._cells = rec.cells.map(([symbol, t, ok]) => ({ symbol, t, ok }));
+    lastRec = rec;
+    drawStrip();
+    // bad table
+    $("bad").innerHTML = rec.mismatches.length
+      ? "<thead><tr><th>Phút (UTC)</th><th>Cặp</th><th>Nhãn</th><th>Trường lệch</th></tr></thead><tbody>" +
+        rec.mismatches.map((m) => `<tr><td class="num">${fmtTm(m.minute)}</td><td>${m.symbol}</td><td><span class="tag bad">${m.label}</span></td><td>${m.fields.join(", ") || "toàn bộ nến"}</td></tr>`).join("") + "</tbody>"
+      : `<tbody><tr><td class="empty">Không có nến nào thiếu hoặc lệch trong ${win} phút gần nhất.</td></tr></tbody>`;
+    // events
+    lastEvents = ev;
+    const gaps = ev.filter((e) => e.kind === "ws_gap" && e.note !== "paused_by_user");
+    const g = gaps[0];
+    if (g) {
+      const sameTime = gaps.filter((x) => Math.abs(new Date(x.at) - new Date(g.at)) < 120000);
+      const bf = sameTime.reduce((a, x) => a + (+x.backfilled || 0), 0);
+      $("k-bf").textContent = nf.format(bf);
+      $("k-bf").className = "v";
+      $("k-bf-l").textContent = `Bản ghi backfill ở sự cố gần nhất (${fmtT(g.at)}, ${sameTime.length} cặp)`;
+    } else { $("k-bf").textContent = "0"; $("k-bf").className = "v"; $("k-bf-l").textContent = "Bản ghi backfill (chưa có sự cố từ khi bật lại pipeline)"; }
+    $("events").innerHTML = ev.length
+      ? "<thead><tr><th>Lúc (UTC)</th><th>Sự kiện</th><th>Chi tiết</th></tr></thead><tbody>" +
+        ev.slice(0, 18).map((e) => e.kind === "chaos"
+          ? `<tr><td class="num">${fmtT(e.at)}</td><td><span class="tag bad">${e.symbol}</span></td><td>${e.note}</td></tr>`
+          : `<tr><td class="num">${fmtT(e.at)}</td><td>${e.symbol}</td><td>${e.note}${e.until ? ` · nối lại ${fmtT(e.until)}` : " · <b>đang mất kết nối</b>"} · backfill ${nf.format(e.backfilled || 0)}</td></tr>`).join("") + "</tbody>"
+      : '<tbody><tr><td class="empty">Chưa có sự cố từ khi bật lại pipeline.</td></tr></tbody>';
+    // chaos
+    const running = ch.scenario && !ch.ended;
+    document.querySelectorAll(".btn.chaos").forEach((b) => b.disabled = !!running);
+    if (ch.log && ch.log.length) { const lg = $("log"); lg.textContent = ch.log.join("\n"); lg.scrollTop = lg.scrollHeight; }
+    await loadCandles();
+  } catch (e) { $("err").textContent = "Không tải được dữ liệu: " + e.message; }
+}
+
+document.querySelectorAll(".btn.chaos").forEach((b) => b.onclick = async () => {
+  const s = b.dataset.s, down = $("down").value;
+  if (!confirm(`Chạy kịch bản ${s} trong ${down} s?`)) return;
+  try { await api(`/api/chaos/${s}?down=${down}`, { method: "POST" }); tick(); }
+  catch (e) { alert(e.message); }
+});
+
+setInterval(() => { $("clock").textContent = new Date().toISOString().slice(11, 19) + " UTC"; }, 1000);
+tick(); setInterval(tick, 5000);
+</script>
+</body>
+</html>

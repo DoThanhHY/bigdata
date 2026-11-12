@@ -2,7 +2,7 @@
 
 Đánh `[x]` khi xong. Mỗi mục có **đầu ra kiểm chứng được**: một file trong `results/`, một bảng trong DB, hoặc một test xanh.
 
-> **Checkpoint ban đầu:** 13/10/2026. Trạng thái dưới đây được cập nhật ngày 08/11/2026; giữ các mốc cũ để truy vết quá trình thực nghiệm.
+> **Checkpoint ban đầu:** 13/10/2026. Trạng thái dưới đây được cập nhật ngày 11/11/2026; giữ các mốc cũ để truy vết quá trình thực nghiệm.
 
 ## Phân công (điền tên)
 
@@ -33,12 +33,14 @@
 - [x] `python -m bdi.batch.load_klines`: 20 file, mỗi tháng đủ 43 200 hoặc 44 640 phút
 - [x] `python -m bdi.batch.build_batch`: 418M dòng, khoảng 70 phút
 - [x] **E1** (SOL + XRP): [kết quả](experiments/E1-drift-ablation.md) → `results/e1/ablation.csv`. Naive hỏng 100% ở 2026, drift-aware đúng 100%
-- [ ] E1 cho đủ 5 cặp × 4 tháng
+- [x] E1 cho đủ 5 cặp × 4 tháng (11/11): 40/40 dòng đúng quy luật, naive 0% / drift-aware 100% nến 2026 trên 203,9M bản ghi → `results/e1/ablation.{csv,png}`
 - [x] E7 kiểm tra lại trên sự kiện khác (LUNA 5/2022) để tránh chọn tham số theo dữ liệu: 9–12/5/2022 chiếm trọn top 1–4 của tháng (`results/e7/sweep_luna.csv`)
-- [ ] E6 đo lại thời gian trên máy rảnh
+- [x] E6 đo lại thời gian trên máy rảnh (12/11): agg_id 8,7 lần; price chính xác nhanh hơn mọi bản xấp xỉ; relErr không ảnh hưởng thời gian phân vị → [11-bao-cao-mang-3.md](11-bao-cao-mang-3.md)
+- [x] E5 biến thể event-time (12/11): phẳng theo δ, F1 0,931 < 0,995 vì 12,87% bản ghi trùng hệt ở độ phân giải ms
+- [x] Báo cáo Mảng 3 (C4 + E6) → [11-bao-cao-mang-3.md](11-bao-cao-mang-3.md)
 - [x] **E2**: [kết quả](experiments/E2-batch-vs-official.md). **878 400/878 400 nến khớp tuyệt đối**
 - [x] Kiểm tra câu hỏi mở của C3: official của 5 cặp × 4 tháng **không có phút nào `trades = 0`**, và mọi tháng đủ phút. Với các cặp thanh khoản cao này, `EMPTY_MINUTE` không xảy ra (cần ghi rõ phạm vi khi kết luận)
-- [ ] Viết nháp mục báo cáo C1 và C2: ba điểm kỹ thuật (min_by/max_by, Decimal, số trades), dẫn chứng bằng `tests/test_candles.py`
+- [x] Viết nháp mục báo cáo C1 và C2: ba điểm kỹ thuật (min_by/max_by, Decimal, số trades), dẫn chứng bằng `tests/test_candles.py` → [09-bao-cao-c1-c2.md](09-bao-cao-c1-c2.md) (kèm C6 lineage + idempotent)
 
 ## Tuần 2: E3 + E4 + Grafana (Mảng 2, Mảng 4)
 
@@ -51,12 +53,12 @@
 - [x] **E4** chủ động: [kết quả](experiments/E4-fault-injection.md). 4 kịch bản streaming 0 nến thiếu/thừa/lệch, phục hồi 5,7–25,6 s
 - [x] E4 · idempotent: `chaos.sh batch_rerun` in ra `[ok] idempotent` (175 680 dòng, md5 không đổi)
 - [x] E4 · reconnect chủ động trước mốc 24 giờ: 5 symbol, backfill đủ 58 bản tin, không thiếu nến (`reason = 'proactive_24h'`)
-- [x] Grafana live và results: đầy đủ panel theo dõi live (Candlestick, độ tươi, đối soát nguồn, khoảng trống WS/backfill) và kết quả thí nghiệm (`bdi_results.json` 27 panel + `bdi.json` 12 panel)
+- [x] Grafana live và results: đầy đủ panel theo dõi live (Candlestick, độ tươi, đối soát nguồn, khoảng trống WS/backfill) và kết quả thí nghiệm (`bdi_results.json` 29 panel + `bdi.json` 12 panel; 11/11 đã nạp đủ 14 bảng `exp_*`, mọi panel truy vấn được)
 
 ## Tuần 3: E5 + E6 + E7 (Mảng 3, Mảng 4)
 
 - [x] **E5**: [kết quả](experiments/E5-record-linkage.md). Ghép giữ thứ tự đạt F1 = 0,995 ở δ = 1 s; blocking giảm số cặp 250–2 750 lần
-- [x] **E6**: [kết quả](experiments/E6-approx-query.md). HLL++ nhanh hơn 12,7 lần (sai 0,76%) trên agg_id; phân vị chính xác OOM, nên phải dùng xấp xỉ
+- [x] **E6**: [kết quả](experiments/E6-approx-query.md). HLL++ nhanh hơn 8,7 lần (sai 0,76%) trên agg_id (đo lại máy rảnh 12/11); phân vị chính xác OOM, nên phải dùng xấp xỉ
 - [x] **E7** batch: [kết quả](experiments/E7-anomaly-ftx.md). Sau khi sửa phương pháp (W = 1 ngày, log-volume, sàn 0,5%), 8–9/11/2022 là top-2 ngày
 - [x] **E7** replay FTX 100× trên stream: báo động stream trùng batch 111/111; nến khớp official 5 758/5 758
 - [x] E7 throughput sơ bộ: 13,9k–25,5k bản tin/s (khoảng 750–1 370 lần live)
@@ -65,6 +67,8 @@
 
 ## Tuần 4: Tổng hợp + báo cáo + demo
 
+- [x] 11/11: bật lại pipeline live sau khi tạm dừng từ 14/10 (khoảng nghỉ ghi `ws_gaps.reason = 'paused_by_user'`, không backfill; state cũ lưu ở `ingest_state_bak_20261014`); 23/23 test xanh trên host
+
 - [x] **C3**: đối soát live ghi nhận 5 `CAPTURE_START`, 0 `UNKNOWN`; E2/E4 không có nến lệch
 - [x] **C5 24 giờ cho Stream/Official:** [kết quả](experiments/C5-source-policy.md). 7.200 nến, 100% hội tụ; TTC p50 = 0,0 giây, p95 = 2,9 giây
 - [x] C5: nạp Batch hai ngày 07–08/11 sau T+1 và hoàn tất phân tích đối soát đủ ba nguồn
@@ -72,7 +76,8 @@
 - [x] Đồng bộ kết quả E3/C3/C5 đầy đủ vào tài liệu; nạp Batch C5 hoàn tất 100%
 - [x] Video demo dự phòng 90s tại `results/demo/demo_mang2_90s.mp4`
 - [ ] Chốt toàn bộ hình trong `results/` và đưa vào báo cáo/slide
-- [ ] Tập demo theo [04-demo.md](04-demo.md) ít nhất 2 lần
+- [x] Demo Console (`make demo`): live 3 nguồn + nút gây sự cố E4 + lưới đối soát; tập lần 1 ngày 11/11 (`ws_netcut` → backfill 1 244 bản ghi → 120/120 nến khớp)
+- [ ] Tập demo theo [04-demo.md](04-demo.md) ít nhất 2 lần (còn 1 lần, có cả nhóm)
 
 ---
 
